@@ -183,10 +183,11 @@ Page {
         contentHeight: height
 
         // Pulley-Menue. Muss innerhalb des SilicaFlickable deklariert
-        // sein (Silica 1.2, siehe Kommentar oben). spacing 0: Die Seite
-        // ist nicht scrollbar, der Content soll ohne Pulley-Streifen
-        // am oberen Rand beginnen.
-        spacing: 0
+        // sein (Silica 1.2, siehe Kommentar oben). Achtung: Die Property
+        // "spacing" des Pulleys exponiert der neue Composite-Typ nicht
+        // mehr nach aussen (frueher: C++-Typ, direkt zuweisbar); sie wird
+        // intern auf 0 gesetzt, der Content beginnt also ohnehin buendig
+        // am oberen Rand.
 
         MenuItem {
             text: qsTr("Neues Level")

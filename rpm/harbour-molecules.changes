@@ -1,3 +1,10 @@
+* Fri Oct 30 2026 Sailfish Port <port@example.org> - 1.0.8
+- Behoben: Startfehler "Cannot assign to non-existent property
+  'spacing'" in 1.0.7. Der Composite-Typ PullDownMenu der neuen
+  Silica-Generation exponiert die Pulley-Property "spacing" nicht
+  mehr nach aussen (frueher: C++-Typ, direkt zuweisbar) - sie wird
+  vom Typ selbst intern auf 0 gesetzt. Zuweisung entfernt.
+
 * Fri Oct 30 2026 Sailfish Port <port@example.org> - 1.0.7
 - Behoben: Touch-Behandlung und Pulley-Menue auf Geraeten mit Silica 1.2
   (Sailfish OS 5.1 / Jolla Phone 2026). Die Inhalte inkl. Pulley-Menue

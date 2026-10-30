@@ -113,11 +113,11 @@ If you copy the RPM to the device by other means (e.g. via `scp`):
 ```bash
 # RPM path: RPMS/ when built with sfdk on the command line,
 # RPM/build/ when built with Qt Creator
-scp RPMS/harbour-molecules-1.0.7-1.aarch64.rpm defaultuser@<IP>:/home/defaultuser/
+scp RPMS/harbour-molecules-1.0.8-1.aarch64.rpm defaultuser@<IP>:/home/defaultuser/
 ssh defaultuser@<IP>
-devel-su pkcon install-local harbour-molecules-1.0.7-1.aarch64.rpm
+devel-su pkcon install-local harbour-molecules-1.0.8-1.aarch64.rpm
 # or alternatively:
-devel-su rpm -Uvh /home/defaultuser/harbour-molecules-1.0.7-1.aarch64.rpm
+devel-su rpm -Uvh /home/defaultuser/harbour-molecules-1.0.8-1.aarch64.rpm
 ```
 
 **Molecules** then appears in the app grid (including icon).
