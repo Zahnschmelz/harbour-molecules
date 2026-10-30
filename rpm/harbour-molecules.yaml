@@ -1,0 +1,47 @@
+Name: harbour-molecules
+Summary: Molecules - ein Osmos-Klon für Sailfish OS
+Version: 1.0.4
+Release: 1
+# The contents of the "Group" and "License" fields are automatically filled
+# in by the rpm build.
+Group: Qt/Qt
+License: Unlicense
+URL: https://github.com/miskatonicstudio/molecules
+Sources:
+- '%{name}-%{version}.tar.bz2'
+Description: |
+  Molecules ist ein einfacher Klon des Spiels Osmos, ursprünglich entwickelt
+  von Miskatonic Studio mit der Godot Engine.
+
+  Große Moleküle absorbieren kleinere. Das Ziel: das größte Molekül werden.
+  Bewege dich fort, indem du Masse hinter dir ausstößt - aber Vorsicht,
+  das kostet dich Substanz.
+
+  Dies ist eine native Sailfish-OS-Neuimplementierung (Silica/QML) des
+  ursprünglich mit Godot 4.0 entwickelten Spiels, portiert für das
+  Jolla Phone 2026 (aarch64).
+Configure: none
+Builder: qmake5
+
+PkgConfigBR:
+- sailfishapp >= 1.0.2
+- Qt5Quick
+- Qt5Qml
+- Qt5Gui
+
+Requires:
+- sailfishsilica-qt5 >= 0.10.9
+# QML-Plugin fuer "import QtMultimedia" (Hintergrundmusik). Auf Sailfish OS
+# folgt der Name der Konvention "qt5-qtdeclarative-import-*"; das Paket
+# provides "qml(QtMultimedia) = 5.0" und zieht die Basisbibliothek
+# qt5-qtmultimedia automatisch nach (verifiziert im offiziellen
+# Jolla-Release-Repo 5.1.0.11, aarch64).
+# Achtung: "Qt5Multimedia" (Qt-Modulname) UND "qt5-qtmultimedia-declarative"
+# (alte Mer-Konvention) existieren in den Geraete-Repos NICHT als Pakete!
+- qt5-qtdeclarative-import-multimedia
+
+Files:
+- '%{_bindir}/%{name}'
+- '%{_datadir}/%{name}/qml'
+- '%{_datadir}/applications/%{name}.desktop'
+- '%{_datadir}/icons/hicolor/*/apps/%{name}.png'

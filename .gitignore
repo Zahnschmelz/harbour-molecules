@@ -1,11 +1,16 @@
-.import
-.godot
-
-# Binary / HTML
-*.pck
-*.exe
-*.x86_64
-*.zip
-*.js
-*.html
-*.wasm
+# Build-Artefakte
+*.o
+*.so
+*.moc
+moc_*.cpp
+qrc_*.cpp
+Makefile*
+*.pro.user
+*.pro.user.*
+.qtc_clangd/
+.qtc-package-management/
+build-*/
+RPM/
+*.rpm
+rpm/*.tar.bz2
+.DS_Store

@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Molecules
+Name[de]=Molecules
+Name[en]=Molecules
+Comment=Osmos-Clon for Sailfish OS
+Comment[de]=Ein Osmos-Klon für Sailfish OS
+Icon=harbour-molecules
+Exec=harbour-molecules
+X-Nemo-Application-Type=silica-qt5

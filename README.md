@@ -1,213 +1,210 @@
 ![Molecules screenshot](https://user-images.githubusercontent.com/36821133/123157862-5bb35280-d46b-11eb-98b1-579123c838c6.gif)
 
-# harbour-molecules — Molecules für Sailfish OS
+# harbour-molecules — Molecules for Sailfish OS
 
-Native Sailfish-OS-Portierung von **Molecules**, einem einfachen Osmos-Klon
-von [Miskatonic Studio](https://github.com/miskatonicstudio/molecules)
-(Original: Godot 4.0, The Unlicense / Public Domain).
+Native Sailfish OS port of **Molecules**, a simple Osmos clone by
+[Miskatonic Studio](https://github.com/miskatonicstudio/molecules)
+(original: Godot 4.0, The Unlicense / Public Domain).
 
-Dieses Projekt ist eine **komplette Neuimplementierung mit Silica/QML** –
-keine Godot-Engine, kein Android-Layer. Die Spiellogik, alle Konstanten und
-der Molekül-Shader wurden 1:1 aus dem Original übernommen; Maussteuerung und
-Hauptmenü wurden idiomatisch nach Sailfish OS übersetzt (Tap-Steuerung,
-Pulley-Menü, Cover-Seite).
+This project is a **complete reimplementation in Silica/QML** —
+no Godot engine, no Android layer. The game logic, all constants and the
+molecule shader were taken over 1:1 from the original; mouse control and
+the main menu were translated idiomatically to Sailfish OS
+(hold-to-move control, two-finger tap as right-click, pulley menu, cover).
 
-Zielplattform: **Jolla Phone 2026** (Sailfish OS 5, aarch64).
-Läuft dank Qt 5.6-kompatiblem QML grundsätzlich auch auf allen anderen
-Sailfish-OS-5-Geräten.
+Target platform: **Jolla Phone 2026** (Sailfish OS 5, aarch64).
+Thanks to Qt 5.6-compatible QML it generally also runs on all other
+Sailfish OS 5 devices.
 
 ---
 
-## Gameplay & Steuerung
+## Gameplay & controls
 
-Größere Moleküle absorbieren kleinere. Werde zum größten Molekül im Feld.
+Bigger molecules absorb smaller ones. Become the biggest molecule in the field.
 
-| Original (Maus) | Sailfish-Port (Touch) |
+| Original (mouse) | Sailfish port (touch) |
 |---|---|
-| Linksklick hinter dem Molekül, halten | **Tippen** hinter dem Molekül (kurzer Schub-Burst) |
-| Rechtsklick (Menü / Tutorial wegklicken) | **Pulley-Menü** (von oben ziehen) bzw. Tippen im Tutorial |
-| Hauptmenü: Resume / New level / Music / Quit | Pulley: **Neues Level** / **Musik** / **Über Molecules** |
+| Left-click behind the molecule, hold (continuous thrust) | **Hold behind your molecule** (continuous thrust; direction follows your finger) |
+| Right-click (menu / dismiss tutorial) | **Two-finger tap** (opens the main menu; in the tutorial: continue). Alternatively, as usual, the pulley menu (pull down from the top) |
+| Main menu: Resume / New level / Music / Quit | Menu (two-finger tap) resp. pulley: **Neues Level** (New level) / **Musik** (Music) / **Über Molecules** (About) |
 
-- Jeder Schub stößt echte Masse aus – du wirst dadurch kleiner!
-- Spielziel: mehr als 50 % der Gesamtmasse des Levels vereinigen.
-- Das Spiel pausiert automatisch, solange das Pulley-Menü offen ist oder die
-  App verdeckt wird (Cover).
-- Querformat (wie das Original im 1280×720-Landschaftsfeld); das Spielfeld
-  wird fit-in-scaled und zentriert dargestellt.
+- Every thrust expels real mass — you shrink as a result!
+- Win condition: absorb more than 50 % of the level's total mass.
+- The game pauses automatically while a menu (pulley or main menu) is open
+  or the app is covered (cover page).
+- Landscape (like the original's 1280×720 landscape field); the play field
+  is scaled "fit inside" and centered.
 
 ---
 
-## Projektstruktur
+## Project structure
 
 ```
 harbour-molecules/
-├── harbour-molecules.pro           qmake-Projekt (CONFIG += sailfishapp)
-├── harbour-molecules.desktop       Desktop-Eintrag (Name, Icon, silica-qt5)
-├── LICENSE                         The Unlicense (aus dem Original)
+├── harbour-molecules.pro           qmake project (CONFIG += sailfishapp)
+├── harbour-molecules.desktop       desktop entry (name, icon, silica-qt5)
+├── LICENSE                         The Unlicense (from the original)
 ├── src/
-│   └── harbour-molecules.cpp       Standard-Boilerplate (SailfishApp, ~30 Zeilen)
+│   └── harbour-molecules.cpp       standard boilerplate (SailfishApp, ~30 lines)
 ├── qml/
-│   ├── harbour-molecules.qml       ApplicationWindow (Querformat, Cover)
-│   ├── pages/FirstPage.qml         Spielfeld, Pulley-Menü, Spielschleife
-│   ├── pages/AboutPage.qml         Über-Seite (Credits, GitHub-Link)
-│   ├── components/Molecule.qml     Molekül-Rendering (portierter Godot-Shader)
-│   ├── js/game.js                  Spiellogik (ES5) – 1:1 aus GDScript portiert
-│   ├── cover/CoverPage.qml         Minimales Cover
-│   ├── images/noise.png            Nahtlos kachelbares Noise (erspart FastNoiseLite)
-│   └── sounds/ambient.ogg          Ambient-Sound (Public Domain, aus dem Original)
+│   ├── harbour-molecules.qml       ApplicationWindow (landscape, cover)
+│   ├── pages/FirstPage.qml         play field, menus, game loop
+│   ├── pages/AboutPage.qml         about page (credits, GitHub link)
+│   ├── components/Molecule.qml     molecule rendering (ported Godot shader)
+│   ├── js/game.js                  game logic (ES5) – ported 1:1 from GDScript
+│   ├── cover/CoverPage.qml         minimal cover
+│   ├── images/noise.png            seamlessly tileable noise (replaces FastNoiseLite)
+│   └── sounds/ambient.ogg          ambient sound (Public Domain, from the original)
 ├── icons/86x86|108x108|128x128|172x172/harbour-molecules.png
 └── rpm/
-    ├── harbour-molecules.yaml      RPM-Spec (Sailfish-OS-yaml-Format)
-    └── harbour-molecules.changes   Changelog
+    ├── harbour-molecules.yaml      RPM spec (Sailfish OS .yaml format)
+    └── harbour-molecules.changes   changelog
 ```
 
 ---
 
-## Voraussetzungen
+## Prerequisites
 
-1. **Sailfish SDK** („Sailfish OS IDE", basiert auf Qt Creator):
+1. **Sailfish SDK** ("Sailfish OS IDE", based on Qt Creator):
    <https://docs.sailfishos.org/Tools/Sailfish_SDK.html>
-   – Installer für Linux, macOS und Windows; enthält Build Engine, Emulator
-   und IDE.
-2. **Build-Target aarch64**: In der IDE über
-   *Build → Manage Build Targets / SDK Control Center* das aktuelle
-   **Sailfish OS 5.x Target für aarch64** installieren (das Jolla Phone 2026
-   ist ein aarch64-Gerät; die Targets heißen z. B.
-   `SailfishOS-5.x.x-aarch64`).
-3. **Jolla Phone 2026 mit Entwicklermodus**:
-   *Einstellungen → System → Entwicklertools* → Entwicklermodus aktivieren
-   und SSH-Passwort setzen. WLAN/USB-Verbindung zum PC herstellen
-   (bei USB: *Entwicklertools → USB-Netzwerk* bzw. die angezeigte IP).
+   – installers for Linux, macOS and Windows; includes build engine,
+   emulator and IDE.
+2. **aarch64 build target**: in the IDE, install the current
+   **Sailfish OS 5.x target for aarch64** via
+   *Build → Manage Build Targets / SDK Control Center* (the Jolla Phone 2026
+   is an aarch64 device; targets are named e.g. `SailfishOS-5.x.x-aarch64`).
+3. **Jolla Phone 2026 with developer mode**:
+   *Settings → System → Developer Tools* → enable developer mode and set an
+   SSH password. Establish a WLAN/USB connection to the PC
+   (for USB: *Developer Tools → USB network* resp. the displayed IP).
 
 ---
 
-## Build & Deploy in der Sailfish IDE (empfohlen)
+## Build & deploy in the Sailfish IDE (recommended)
 
-1. IDE starten → **File → Open File or Project…** → `harbour-molecules.pro`
-   auswählen.
-2. Im Projektkonfigurationsdialog das **aarch64-Kit** wählen
-   (z. B. `SailfishOS-5.x.x-aarch64`) → *Configure Project*.
-3. Links unten im Modus-Auswahlfeld den **Deploy-Modus** öffnen und prüfen,
-   dass als Paketkonfiguration `harbour-molecules` (RPM) aktiv ist.
-4. **Gerät verbinden:** *Projects → Run → Run Settings → Device* →
-   physisches Gerät auswählen oder neu anlegen
-   (Host: IP des Telefons, Benutzer: `defaultuser` bzw. `nemo`,
-   Passwort: dein SSH-Passwort aus dem Entwicklermodus).
-5. **Bauen:** Rechts unten auf den *Hammer* (Build) klicken – oder
-   *Build → Build Project „harbour-molecules"*.
-6. **Deployen & Starten:** Auf den grünen *Pfeil (Run)* klicken. Die IDE baut
-   die RPM, installiert sie per SSH auf dem Gerät und startet die App.
-7. Falls Sailfish beim ersten Start warnt („App aus nicht vertrauenswürdiger
-   Quelle"): *Einstellungen → System → Nicht vertrauenswürdige Software* →
-   Installieren erlauben (einmalig nötig für selbst gebaute RPMs).
+1. Start the IDE → **File → Open File or Project…** → select
+   `harbour-molecules.pro`.
+2. In the project configuration dialog select the **aarch64 kit**
+   (e.g. `SailfishOS-5.x.x-aarch64`) → *Configure Project*.
+3. Open the **Deploy mode** in the mode selector at the bottom left and make
+   sure the package configuration `harbour-molecules` (RPM) is active.
+4. **Connect the device:** *Projects → Run → Run Settings → Device* →
+   select or create the physical device
+   (host: the phone's IP, user: `defaultuser` resp. `nemo`,
+   password: your SSH password from developer mode).
+5. **Build:** click the *hammer* (Build) at the bottom right — or
+   *Build → Build Project "harbour-molecules"*.
+6. **Deploy & run:** click the green *arrow (Run)*. The IDE builds the RPM,
+   installs it on the device via SSH and starts the app.
+7. If Sailfish warns on first start ("app from untrusted source"):
+   *Settings → System → Untrusted software* → allow installation
+   (one-time step required for self-built RPMs).
 
-**Nur die RPM erzeugen** (ohne Start): Deploy-Modus →
-*Build → Deploy Project → „Build RPM Package for harbour-molecules"*.
-Die fertige RPM liegt unter `RPM/build/` im Build-Verzeichnis.
+**Build the RPM only** (without running): Deploy mode →
+*Build → Deploy Project → "Build RPM Package for harbour-molecules"*.
+The finished RPM is in `RPM/build/` inside the build directory.
 
 ---
 
-## Manuelle Installation der RPM auf dem Gerät
+## Manual RPM installation on the device
 
-Wenn du die RPM anderweitig auf das Gerät kopierst (z. B. per `scp`):
+If you copy the RPM to the device by other means (e.g. via `scp`):
 
 ```bash
-scp RPM/build/harbour-molecules-1.0.1-1.aarch64.rpm defaultuser@<IP>:/home/defaultuser/
+scp RPM/build/harbour-molecules-1.0.4-1.aarch64.rpm defaultuser@<IP>:/home/defaultuser/
 ssh defaultuser@<IP>
-devel-su pkcon install-local harbour-molecules-1.0.1-1.aarch64.rpm
-# oder alternativ:
-devel-su rpm -Uvh /home/defaultuser/harbour-molecules-1.0.1-1.aarch64.rpm
+devel-su pkcon install-local harbour-molecules-1.0.4-1.aarch64.rpm
+# or alternatively:
+devel-su rpm -Uvh /home/defaultuser/harbour-molecules-1.0.4-1.aarch64.rpm
 ```
 
-Danach erscheint **Molecules** im App-Raster (inkl. Icon).
+**Molecules** then appears in the app grid (including icon).
 
 ---
 
-## CLI-Build (optional, Platform SDK / sfdk)
+## CLI build (optional, Platform SDK / sfdk)
 
-Wer ohne IDE bauen möchte (Platform SDK eingerichtet laut
+For building without the IDE (Platform SDK set up according to
 <https://docs.sailfishos.org/Tools/Platform_SDK/Target_Installation/>):
 
 ```bash
 cd harbour-molecules
 sfdk engine start
 sfdk config target=SailfishOS-5.x.x-aarch64
-sfdk package   # bzw. klassisch: mb2 -t SailfishOS-5.x.x-aarch64 build
+sfdk package   # resp. classic: mb2 -t SailfishOS-5.x.x-aarch64 build
 ```
 
 ---
 
-## Portierungsdetails (Godot → Sailfish)
+## Porting details (Godot → Sailfish)
 
-| Godot-Original | Sailfish-Port | Anmerkung |
+| Godot original | Sailfish port | Note |
 |---|---|---|
-| `RigidBody2D` + `Area2D`, Kollision nur mit Wänden (`collision_layer = 2` vs. Wand-Layer 3), `bounce = 1.0`, `friction = 0` | Eigene Kreis-Physik in `qml/js/game.js` (60-Hz-Timer) | Identisches Verhalten: Wandreflexion, keine Molekül-Molekül-Kollision |
-| Absorption: Überlappungslinse wird herausgeschnitten (`Molecule.gd::_process`) | `resolveAbsorption()` – exakt gleiche Formel | Masse-Erhaltung + Impulsübertragung (Momentum-Blend) wie Original |
-| Antrieb: `apply_central_impulse(±3 / 150)` pro Physik-Tick bei gehaltener Maustaste | Tap-Burst: 10 Ausstoß-Ticks pro Tipp | ~0,17 s gehaltene Taste; Konstanten unverändert (`0.0008–0.0016` Massenanteil) |
-| Levelgenerierung (Radien 72→5, Rückweisungsverfahren) | `generateRandom()` – identisch | Tutorial-Feld exakt aus `Game.tscn` übernommen |
-| Sieg: `mass > total * 0.5`, Tutorial-Total × 1.5 | identisch in `game.js` + `FirstPage.qml` | |
-| `canvas_item`-Shader (Fresnel + Noise-Blitze) | QML `ShaderEffect` (GLSL ES), Fragment-Shader 1:1 übernommen | Qt blendet premultiplied → `rgb *= alpha` ergänzt, Ergebnis = Godot-Look |
-| `NoiseTexture2D` + `FastNoiseLite` (seamless, Laufzeit-Generierung) | `qml/images/noise.png` (256×256, nahtlos kachelbares Value-Noise) | Equivalent sichtbar, shaderseitig identisch gesampelt |
-| Hauptmenü (Buttons) | Pulley-Menü + About-Seite | Quit entfällt (Sailfish-Gesten schließen die App) |
-| `AudioStreamPlayer`, -20 dB, Loop | `Audio` zur Laufzeit erzeugt (`volume: 0.1`, Loop via `onStopped`); ohne Multimedia-Plugin stumm | |
-| 1280×720, stretch `2d`/`keep_width` | feste Weltkoordinaten 1280×720, fit-inside zentriert | Auf höheren Displays schwarze Ränder, Gameplay-Proportionen exakt erhalten |
+| `RigidBody2D` + `Area2D`, collisions with walls only (`collision_layer = 2` vs. wall layer 3), `bounce = 1.0`, `friction = 0` | custom circle physics in `qml/js/game.js` (60 Hz timer) | identical behaviour: wall reflection, no molecule–molecule collisions |
+| Absorption: the overlap lens is cut out of the smaller molecule (`Molecule.gd::_process`) | `resolveAbsorption()` – exact same formula | mass conservation + momentum blending as in the original |
+| Propulsion: `apply_central_impulse(±3 / 150)` per physics tick while the left mouse button is held, direction = mouse position − own position, recomputed every tick | `MultiPointTouchArea`: one expulsion per physics tick while a finger is held, direction follows the finger | constants unchanged (`0.0008–0.0016` mass fraction, forces 3 / 150); two-finger tap replaces the right mouse button ("dismiss") |
+| Level generation (radii 72→5, rejection sampling) | `generateRandom()` – identical | tutorial field taken over exactly from `Game.tscn` |
+| Win: `mass > total * 0.5`, tutorial total × 1.5 | identical in `game.js` + `FirstPage.qml` | |
+| `canvas_item` shader (Fresnel + noise lightning) | QML `ShaderEffect` (GLSL ES), fragment shader taken over 1:1 | Qt blends premultiplied → added `rgb *= alpha`, result = Godot look |
+| `NoiseTexture2D` + `FastNoiseLite` (seamless, generated at runtime) | `qml/images/noise.png` (256×256, seamlessly tileable value noise) | visually equivalent, sampled identically in the shader |
+| Main menu (buttons), toggled by right mouse button | Silica `Menu` (opened by two-finger tap) + pulley menu + About page | Quit omitted (Sailfish gestures close the app) |
+| `AudioStreamPlayer`, −20 dB, loop | `Audio` created at runtime (`volume: 0.1`, loop via `onStopped`); silent without the Multimedia plugin | |
+| 1280×720, stretch `2d`/`keep_width` | fixed world coordinates 1280×720, fit-inside, centered | black borders on taller displays, gameplay proportions exactly preserved |
 
-Bewusst **nicht** übernommen: Tuffy-Font (liegt dem Repo nicht bei, Silica-
-Standardfont passt optisch), Quit-Button, Mausposition-als-Cursor-Logik.
+Deliberately **not** ported: Tuffy font (not shipped in the upstream repo,
+the Silica default font fits visually), Quit button, mouse-position-as-cursor logic.
 
 ---
 
 ## Troubleshooting
 
-- **„Failed to deploy by RPM" / SSH-Fehler**: Entwicklermodus-Passwort
-  prüfen, IP des Telefons prüfen (*Einstellungen → Entwicklertools →
-  Netzwerk*); bei USB-Deploy die USB-Netzwerkverbindung aufbauen.
-- **App startet nicht auf dem Gerät**: `devel-su journalctl -xe | grep -i
-  molecules` bzw. auf der Kommandozeile `harbour-molecules` ausführen und
-  Fehlermeldung lesen.
-- **Kein Sound**: Prüfen, ob das QML-Plugin von QtMultimedia installiert
-  ist: `rpm -qa | grep multimedia`. Nachinstallieren mit
-  `devel-su pkcon install qt5-qtdeclarative-import-multimedia` (so heißt
-  das Paket auf Sailfish OS; es zieht `qt5-qtmultimedia` mit). Die App
-  startet auch ohne das Plugin – dann läuft sie nur ohne Hintergrundmusik.
-- **„nichts stellt 'Qt5Multimedia' bereit"** (Abhängigkeitsfehler bei der
-  RPM-Installation): Fehler in Version 1.0.0 – dort stand der Qt-Modulname
-  statt des Paketnamens in der Spec. Ab **1.0.2** korrigiert: das
-  QML-Plugin heißt auf Sailfish OS `qt5-qtdeclarative-import-multimedia`
-  (1.0.1 hatte fälschlich den Mer-Namen `qt5-qtmultimedia-declarative`,
-  den es in den Geräte-Repos nicht gibt). Notbehelf mit der alten RPM:
-  beim Solver-Prompt `2` wählen (Abhängigkeit ignorieren) – die App
-  startet dann ohne Musik.
-- **„SilicaPage is not a type“ / „Seite konnte nicht geladen werden“**:
-  Die neue Silica-Generation (Sailfish OS 5.1 auf dem Jolla Phone 2026,
-  Silica 1.2.x) hat den C++-Typ `SilicaPage` **entfernt**. Ab **1.0.3**
-  wird der gleichwertige Composite-Typ `Page` verwendet (dieselbe API:
-  `status`, `allowedOrientations`, Pulley-Integration). Alle übrigen
-  hier genutzten Typen (`ApplicationWindow`, `PullDownMenu`,
-  `IconTextSwitch`, `CoverBackground`, `Theme`, `PageStatus`, …) sind
-  weiterhin vorhanden.
-- **„Cannot deploy: Missing Sailfish OS device information in the kit“**:
-  Dem Kit ist kein Gerät zugewiesen. *Extras → Optionen → Geräte* →
-  „Sailfish OS Device“ anlegen (IP des Telefons, Port 22, Benutzer
-  `defaultuser` bzw. `nemo`, SSH-Passwort aus dem Entwicklermodus,
-  „Verbindung testen“), dann das Gerät dem Kit zuweisen bzw. das
-  automatisch neu erzeugte Kit `SailfishOS-…-aarch64.<Gerätename>` im
-  Projekt aktivieren. Alternativ: nur die RPM bauen („Build RPM
-  Package“) und von Hand installieren (siehe oben).
-- **Schwarze Moleküle statt Glow**: falls das GPU-Stack keine
-  ShaderEffectSource-Wiederholung mag, in `FirstPage.qml` bei
-  `noiseSource` `live: false` durch `live: true` ersetzen.
-- **Harbour-Regeln**: Für die Jolla-Store-Veröffentlichung muss die RPM die
-  Harbour-Validierung bestehen (namensräumlich `harbour-` ist erfüllt,
-  keine geschützten APIs genutzt – nur Silica, QtMultimedia, QtQuick).
+- **"Failed to deploy by RPM" / SSH errors**: check the developer mode
+  password and the phone's IP (*Settings → Developer Tools → Network*);
+  for USB deployment establish the USB network connection.
+- **App does not start on the device**: run
+  `devel-su journalctl -xe | grep -i molecules` or start
+  `harbour-molecules` from the command line and read the error message.
+- **No sound**: check whether the QtMultimedia QML plugin is installed:
+  `rpm -qa | grep multimedia`. Install it with
+  `devel-su pkcon install qt5-qtdeclarative-import-multimedia` (that is the
+  package name on Sailfish OS; it pulls in `qt5-qtmultimedia`). The app also
+  starts without the plugin — it then simply runs without background music.
+- **"nothing provides 'Qt5Multimedia'"** (dependency error during RPM
+  installation): a bug in version 1.0.0 — the spec listed the Qt module name
+  instead of the package name. Fixed in **1.0.2**: on Sailfish OS the QML
+  plugin package is called `qt5-qtdeclarative-import-multimedia`
+  (1.0.1 mistakenly used the old Mer name `qt5-qtmultimedia-declarative`,
+  which does not exist in the device repos). Workaround with the old RPM:
+  choose `2` at the solver prompt (ignore dependency) — the app then starts
+  without music.
+- **"SilicaPage is not a type" / "page could not be loaded"**:
+  the new Silica generation (Sailfish OS 5.1 on the Jolla Phone 2026,
+  Silica 1.2.x) **removed** the C++ type `SilicaPage`. As of **1.0.3** the
+  equivalent composite type `Page` is used (same API: `status`,
+  `allowedOrientations`, pulley integration). All other types used here
+  (`ApplicationWindow`, `PullDownMenu`, `IconTextSwitch`,
+  `CoverBackground`, `Theme`, `PageStatus`, …) still exist.
+- **"Cannot deploy: Missing Sailfish OS device information in the kit"**:
+  no device assigned to the kit. *Extras → Options → Devices* → create a
+  "Sailfish OS Device" (phone's IP, port 22, user `defaultuser` resp. `nemo`,
+  SSH password from developer mode, "Test connection"), then assign the
+  device to the kit resp. activate the automatically generated kit
+  `SailfishOS-…-aarch64.<device name>` in the project. Alternative: build
+  the RPM only ("Build RPM Package") and install it manually (see above).
+- **Black molecules instead of a glow**: if the GPU stack does not accept
+  ShaderEffectSource repetition, change `live: false` to `live: true` on
+  `noiseSource` in `FirstPage.qml`.
+- **Harbour rules**: for publication in the Jolla store the RPM has to pass
+  Harbour validation (the `harbour-` namespace requirement is fulfilled, no
+  protected APIs are used — only Silica, QtMultimedia, QtQuick).
 
 ---
 
-## Credits & Lizenz
+## Credits & license
 
-- **Original „Molecules"**: Miskatonic Studio —
+- **Original "Molecules"**: Miskatonic Studio —
   <https://github.com/miskatonicstudio/molecules> — The Unlicense
-  (Public Domain). Spielidee: Hommage an *Osmos* (Hemisphere Games).
-- **Ambient-Sound**: PhonZz via freesound.org (Public Domain).
-- **Dieser Port**: Silica/QML-Neuimplementierung, ebenfalls gemeinfrei
-  (The Unlicense). Danke an Miskatonic Studio für das großzügige Licensing!
+  (Public Domain). Game idea: a homage to *Osmos* (Hemisphere Games).
+- **Ambient sound**: PhonZz via freesound.org (Public Domain).
+- **This port**: Silica/QML reimplementation, also public domain
+  (The Unlicense). Thanks to Miskatonic Studio for the generous licensing!

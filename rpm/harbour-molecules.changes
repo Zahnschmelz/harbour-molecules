@@ -1,0 +1,43 @@
+* Fri Oct 30 2026 Sailfish Port <port@example.org> - 1.0.4
+- Steuerung wie im Original: Gedrückt-halten für kontinuierlichen Schub
+  (ein Ausstoß pro Physik-Tick, Richtung folgt dem Finger, wie gehaltene
+  linke Maustaste im Godot-Original) statt bisherem Tipp-Burst
+- Rechtsklick-Ersatz: Tipp mit zwei Fingern öffnet das Hauptmenü
+  (Silica-Menu, Pendant zum per RMB geöffneten MainMenu des Originals)
+  und setzt das Tutorial fort (Original: "[Press RMB to continue]")
+- Spiel pausiert jetzt auch, solange das per 2-Finger-Tipp geöffnete
+  Hauptmenü offen ist
+
+* Fri Oct 30 2026 Sailfish Port <port@example.org> - 1.0.3
+- SilicaPage durch Page ersetzt (FirstPage, AboutPage): die neue
+  Silica-Generation von Sailfish OS 5.1 (Jolla Phone 2026, Silica
+  1.2.154) hat den C++-Typ SilicaPage entfernt, der Composite-Typ
+  Page.qml bietet dieselbe API (status, allowedOrientations,
+  Pulley-Integration). Behebt „SilicaPage is not a type" bzw.
+  „Seite konnte nicht geladen werden".
+- Übrige genutzte Silica-Typen gegen qmldir/plugins.qmltypes von
+  Silica 1.2.154 verifiziert (alle vorhanden).
+
+* Fri Oct 30 2026 Sailfish Port <port@example.org> - 1.0.2
+- Richtiges Multimedia-QML-Plugin im Requires: auf Sailfish OS heißt es
+  qt5-qtdeclarative-import-multimedia (Provides: qml(QtMultimedia) = 5.0,
+  zieht qt5-qtmultimedia automatisch nach). qt5-qtmultimedia-declarative
+  existiert in den Geräte-Repos nicht. Verifiziert gegen das offizielle
+  Jolla-Release-Repo 5.1.0.11 (aarch64).
+
+* Fri Oct 30 2026 Sailfish Port <port@example.org> - 1.0.1
+- Paket-Abhängigkeit korrigiert: Qt-Modulname „Qt5Multimedia" durch das
+  echte Gerätepaket qt5-qtmultimedia-declarative ersetzt (in 1.0.0 ließ
+  sich die RPM deshalb nicht installieren: „nichts stellt Qt5Multimedia
+  bereit")
+- QT += multimedia aus dem .pro entfernt - das Binary braucht keine
+  Link-Abhängigkeit mehr, Musik läuft rein über das QML-Plugin
+- QtMultimedia in FirstPage.qml wird zur Laufzeit erzeugt statt statisch
+  importiert: die App startet nun auch ohne Multimedia-Plugin
+  (dann ohne Hintergrundmusik)
+
+* Mon Oct 30 2026 Sailfish Port <port@example.org> - 1.0.0
+- Erste Sailfish-OS-Version (natives Silica/QML-Port des Godot-Spiels)
+- Touch-Steuerung: Tippen, um dich vom Tappunkt weg zu stoßen
+- Pulley-Menü: Neues Level, Musik an/aus, Über
+- Deutschsprachige Oberfläche, Ziel: aarch64 (Jolla Phone 2026)
