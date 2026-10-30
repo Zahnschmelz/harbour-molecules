@@ -276,10 +276,17 @@ Page {
     // Steuerung (Pendant zur Maus im Original):
     //  - Finger gedrueckt halten = Schub weg vom Finger (Original:
     //    gehaltene linke Maustaste); Richtung folgt dem Finger
-    //  - Doppeltipp oder gleichzeitiger Tipp mit zwei Fingern =
-    //    "Rechtsklick" (Original: RMB) = Hauptmenue oeffnen
+    //  - gleichzeitiger Tipp mit zwei Fingern = "Rechtsklick"
+    //    (Original: RMB) = Hauptmenue oeffnen
     // Die Beruehrungspunkte liegen in Page-Koordinaten vor und werden
     // in die festen Weltkoordinaten (1280x720, skaliert) umgerechnet.
+    //
+    // Qt-5.6-Fallen, im Quellcode (qquickmultipointtoucharea.cpp) bestaetigt:
+    //  - TouchPoint.id existiert erst ab Qt 5.8 -> Beruehrungspunkte
+    //    ueber die Objektidentitaet wiedererkennen
+    //  - die touchPoints-EIGENSCHAFT ist zur Emissionszeit der Signale
+    //    teils leer -> aktive Punkte werden in einer eigenen Liste
+    //    gefuehrt (die Signal-Argumente sind zuverlaessig)
     MultiPointTouchArea {
         id: gameTouch
         anchors.fill: parent
@@ -288,72 +295,60 @@ Page {
         enabled: !page.tutorialActive && !pulley.active &&
                  !pageMenu.open && page.status === PageStatus.Active
 
-        property int propelId: -1
-        property bool twoFinger: false
-        property real lastTapTime: 0
+        property var active: []
+        property var propelPoint: null
 
         function toWorldX(px) { return (px - page.worldOffsetX) / page.worldScale }
         function toWorldY(py) { return (py - page.worldOffsetY) / page.worldScale }
-
+        function removePoint(p) {
+            var i = gameTouch.active.indexOf(p)
+            if (i >= 0) gameTouch.active.splice(i, 1)
+        }
         function stopPropel() {
-            if (propelId !== -1) {
-                propelId = -1
+            if (gameTouch.propelPoint !== null) {
+                gameTouch.propelPoint = null
                 Game.endPropel(page.molecules)
             }
-            twoFinger = false
         }
 
         // Unterbrechung (z. B. Pulley-Geste, App-Wechsel) sauber behandeln
-        onEnabledChanged: stopPropel()
-        onCanceled: stopPropel()
+        onEnabledChanged: { gameTouch.active = []; stopPropel() }
+        onCanceled: { gameTouch.active = []; stopPropel() }
 
         onPressed: {
-            console.log("[touch] pressed:", gameTouch.touchPoints.length,
-                        "enabled:", enabled)
-            if (gameTouch.touchPoints.length >= 2) {
-                // Rechtsklick-Ersatz: beide Finger => Hauptmenue
+            for (var i = 0; i < touchPoints.length; i++)
+                gameTouch.active.push(touchPoints[i])
+            console.log("[touch] pressed, active:", gameTouch.active.length)
+            if (gameTouch.active.length >= 2) {
+                // Rechtsklick-Ersatz: zwei gleichzeitige Finger => Hauptmenue
                 stopPropel()
                 pageMenu.open = true
-            } else if (!gameTouch.twoFinger && propelId === -1) {
-                var p = touchPoints[0]
-                propelId = p.id
+            } else if (gameTouch.propelPoint === null) {
+                var p = gameTouch.active[0]
+                gameTouch.propelPoint = p
                 Game.startPropel(page.molecules,
                                  gameTouch.toWorldX(p.x), gameTouch.toWorldY(p.y))
             }
         }
         onUpdated: {
-            // Zwei-Finger-Erkennung auch hier: die Finger kommen selten
-            // exakt gleich auf (Signal-Argument enthaelt nur die *neu*
-            // gedueckten Punkte, die EIGENSCHAFT alle aktiven - Qt-Falle!)
-            if (gameTouch.touchPoints.length >= 2) {
+            if (gameTouch.active.length >= 2) {
                 stopPropel()
                 pageMenu.open = true
                 return
             }
-            if (gameTouch.twoFinger) return
             for (var i = 0; i < touchPoints.length; i++) {
-                if (touchPoints[i].id === propelId)
+                var p = touchPoints[i]
+                if (p === gameTouch.propelPoint)
                     Game.updateAim(page.molecules,
-                                   gameTouch.toWorldX(touchPoints[i].x),
-                                   gameTouch.toWorldY(touchPoints[i].y))
+                                   gameTouch.toWorldX(p.x), gameTouch.toWorldY(p.y))
             }
         }
         onReleased: {
             for (var i = 0; i < touchPoints.length; i++) {
-                if (touchPoints[i].id === propelId)
+                var p = touchPoints[i]
+                gameTouch.removePoint(p)
+                if (p === gameTouch.propelPoint)
                     stopPropel()
-            }
-            // 2-Finger-Geste beenden, sobald weniger als 2 Finger aktiv
-            if (gameTouch.touchPoints.length < 2)
-                gameTouch.twoFinger = false
-            // Doppeltipp = Rechtsklick-Ersatz (Hauptmenue oeffnen)
-            if (gameTouch.touchPoints.length === 0) {
-                var now = Date.now()
-                if (now - gameTouch.lastTapTime < 400) {
-                    stopPropel()
-                    pageMenu.open = true
-                }
-                gameTouch.lastTapTime = now
             }
         }
     }
@@ -369,10 +364,8 @@ Page {
     // Tutorial fortsetzen (Rechtsklick-Ersatz, Original: "RMB"):
     //  - Doppeltipp: zwei kurze Tipps hintereinander - auf dem
     //    Touchscreen die zuverlaessigste Rechtsklick-Naeherung
-    //  - gleichzeitiger Tipp mit zwei Fingern: Pruefung ueber die
-    //    EIGENSCHAFT touchPoints (zaehlt alle aktiven Punkte); das
-    //    Signal-Argument von onPressed enthaelt nur die *neu*
-    //    gedueckten Punkte - Qt-Falle!
+    //  - gleichzeitiger Tipp mit zwei Fingern: Punkte ueber die
+    //    Objektidentitaet zaehlen (Qt 5.6, siehe Spiel-Touch-Flaeche)
     MultiPointTouchArea {
         id: tutorialTouch
         anchors.fill: parent
@@ -380,37 +373,32 @@ Page {
         enabled: page.tutorialActive
         mouseEnabled: false
 
+        property var active: []
         property real lastTapTime: 0
-
+        function removePoint(p) {
+            var i = tutorialTouch.active.indexOf(p)
+            if (i >= 0) tutorialTouch.active.splice(i, 1)
+        }
         onPressed: {
-            if (tutorialTouch.touchPoints.length >= 2)
+            for (var i = 0; i < touchPoints.length; i++)
+                tutorialTouch.active.push(touchPoints[i])
+            if (tutorialTouch.active.length >= 2)
                 page.dismissTutorial()
         }
-        onUpdated: {
-            if (tutorialTouch.touchPoints.length >= 2)
-                page.dismissTutorial()
-        }
+        onCanceled: tutorialTouch.active = []
         onReleased: {
-            // Doppeltipp: erst wenn alle Finger oben waren, zaehlen
-            if (tutorialTouch.touchPoints.length > 0)
-                return
-            var now = Date.now()
-            if (now - tutorialTouch.lastTapTime < 400)
-                page.dismissTutorial()
-            tutorialTouch.lastTapTime = now
+            for (var i = 0; i < touchPoints.length; i++)
+                tutorialTouch.removePoint(touchPoints[i])
+            // Doppeltipp: alle Finger oben, zweiter TIP innerhalb von 400 ms
+            if (touchPoints.length > 0 && tutorialTouch.active.length === 0) {
+                var now = Date.now()
+                if (now - tutorialTouch.lastTapTime < 400)
+                    page.dismissTutorial()
+                tutorialTouch.lastTapTime = now
+            }
         }
     }
 
-    // ------------------------------------------------------ Hauptmenü
-    // Pendant zum MainMenu des Originals (wurde dort per Rechtsklick
-    // geoeffnet). Auf dem Telefon zusaetzlich zum Pulley-Menue per
-    // "Rechtsklick" erreichbar: Tipp mit zwei Fingern im Spielfeld.
-    //
-    // Wichtig: Die neue Silica-Generation (1.2.x, Sailfish OS 5.1 /
-    // Jolla Phone 2026) kennt den attachbaren Typen "Menu" nicht mehr
-    // (wie schon SilicaPage entfernt) - daher ein eigenes, Silica-artig
-    // gestyltes Overlay aus MenuItems. Funktioniert in allen Silica-
-    // Generationen.
     Item {
         id: pageMenu
         anchors.fill: parent

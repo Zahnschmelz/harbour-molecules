@@ -1,3 +1,24 @@
+* Fri Oct 30 2026 Sailfish Port <port@example.org> - 1.0.12
+- Touch-Beruehrungspunkte werden ueber ihre Objektidentitaet
+  wiedergeerkannt und in einer eigenen Aktivliste gefuehrt:
+  TouchPoint.id existiert auf Qt 5.6 (Sailfish OS 5.1) noch nicht,
+  und die touchPoints-Eigenschaft ist zur Signalzeit teils leer.
+  Der Schub startet jetzt zuverlaessig, die Zielrichtung folgt dem
+  Finger.
+- Das Hauptmenue oeffnet im Spiel nur noch der gleichzeitige Tipp
+  mit zwei Fingern (Doppeltipp entfernt).
+- Tutorial-Overlay analog umgebaut: Doppeltipp bleibt dort als
+  Rechtsklick-Ersatz erhalten, 2-Finger-Tipp ueber die Aktivliste.
+
+* Fri Oct 30 2026 Sailfish Port <port@example.org> - 1.0.11
+- Kritischer Fix: Das PullDownMenu (id: pulley) fehlte im QML-Baum -
+  beim Umbau in 1.0.7 war es mitsamt der id untergegangen und die
+  Menuepunkte haengten direkt im Flickable. Die Bindings
+  "physicsRunning" und die enabled-Bedingung der Spiel-Touch-Flaeche
+  referenzierten das nicht existente pulley-Objekt (ReferenceError),
+  dadurch lief die Physik nicht und die Spiel-Steuerung war
+  deaktiviert. Das Pulley-Menue existiert und funktioniert wieder.
+
 * Fri Oct 30 2026 Sailfish Port <port@example.org> - 1.0.10
 - Die Spiel-Touch-Flaeche liegt jetzt ebenso ausserhalb des
   SilicaFlickable auf der Page: der Flickable kann die Beruehrungen

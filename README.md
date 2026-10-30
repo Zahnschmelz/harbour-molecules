@@ -113,11 +113,11 @@ If you copy the RPM to the device by other means (e.g. via `scp`):
 ```bash
 # RPM path: RPMS/ when built with sfdk on the command line,
 # RPM/build/ when built with Qt Creator
-scp RPMS/harbour-molecules-1.0.11-1.aarch64.rpm defaultuser@<IP>:/home/defaultuser/
+scp RPMS/harbour-molecules-1.0.12-1.aarch64.rpm defaultuser@<IP>:/home/defaultuser/
 ssh defaultuser@<IP>
-devel-su pkcon install-local harbour-molecules-1.0.11-1.aarch64.rpm
+devel-su pkcon install-local harbour-molecules-1.0.12-1.aarch64.rpm
 # or alternatively:
-devel-su rpm -Uvh /home/defaultuser/harbour-molecules-1.0.11-1.aarch64.rpm
+devel-su rpm -Uvh /home/defaultuser/harbour-molecules-1.0.12-1.aarch64.rpm
 ```
 
 **Molecules** then appears in the app grid (including icon).
@@ -144,7 +144,7 @@ sfdk build   # RPMs in ./RPMS (version taken from git tags, keep tag == yaml ver
 |---|---|---|
 | `RigidBody2D` + `Area2D`, collisions with walls only (`collision_layer = 2` vs. wall layer 3), `bounce = 1.0`, `friction = 0` | custom circle physics in `qml/js/game.js` (60 Hz timer) | identical behaviour: wall reflection, no molecule–molecule collisions |
 | Absorption: the overlap lens is cut out of the smaller molecule (`Molecule.gd::_process`) | `resolveAbsorption()` – exact same formula | mass conservation + momentum blending as in the original |
-| Propulsion: `apply_central_impulse(±3 / 150)` per physics tick while the left mouse button is held, direction = mouse position − own position, recomputed every tick | `MultiPointTouchArea`: one expulsion per physics tick while a finger is held, direction follows the finger | constants unchanged (`0.0008–0.0016` mass fraction, forces 3 / 150); two-finger tap replaces the right mouse button ("dismiss"). Gotcha: the `touchPoints` **signal argument** of `onPressed` only lists the *newly* pressed point — test the area's **property** (all active points) for the two-finger gesture |
+| Propulsion: `apply_central_impulse(±3 / 150)` per physics tick while the left mouse button is held, direction = mouse position − own position, recomputed every tick | `MultiPointTouchArea`: one expulsion per physics tick while a finger is held, direction follows the finger | constants unchanged (`0.0008–0.0016` mass fraction, forces 3 / 150); two-finger tap replaces the right mouse button ("dismiss"). gotchas: the `touchPoints` **signal argument** only lists *newly pressed* points; the **property** can read empty at signal emission time; `TouchPoint.id` exists only from Qt 5.8 — this port tracks active touches by **object identity** in its own list and uses the signal argument for movement |
 | Level generation (radii 72→5, rejection sampling) | `generateRandom()` – identical | tutorial field taken over exactly from `Game.tscn` |
 | Win: `mass > total * 0.5`, tutorial total × 1.5 | identical in `game.js` + `FirstPage.qml` | |
 | `canvas_item` shader (Fresnel + noise lightning) | QML `ShaderEffect` (GLSL ES), fragment shader taken over 1:1 | Qt blends premultiplied → added `rgb *= alpha`, result = Godot look |

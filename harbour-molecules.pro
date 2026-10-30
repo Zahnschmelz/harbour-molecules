@@ -4,7 +4,7 @@
 NAME = harbour-molecules
 
 TARGET = $${NAME}
-VERSION = 1.0.11
+VERSION = 1.0.12
 DEFINES += APP_VERSION=\\\"$${VERSION}\\\"
 
 CONFIG += sailfishapp
