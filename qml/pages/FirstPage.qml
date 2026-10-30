@@ -244,6 +244,13 @@ Page {
                 }
             }
             onUpdated: {
+                // Zwei-Finger-Erkennung auch hier: die Finger kommen
+                // selten exakt gleich auf (Signal-Argument siehe oben)
+                if (gameTouch.touchPoints.length >= 2) {
+                    stopPropel()
+                    pageMenu.open = true
+                    return
+                }
                 if (gameTouch.twoFinger) return
                 for (var i = 0; i < touchPoints.length; i++) {
                     if (touchPoints[i].id === propelId)
@@ -264,13 +271,25 @@ Page {
 
         // Tutorial-Overlay: Tipp mit zwei Fingern = Rechtsklick-Ersatz,
         // setzt das Tutorial fort (Original: "[Press RMB to continue]")
+        //
+        // Achtung Qt-Falle: Das Signal-Argument "touchPoints" von
+        // onPressed enthaelt nur die *neu* gedueckten Punkte, nicht alle
+        // aktiven! Der zweite Finger sieht also nur sich selbst
+        // (Liste-Laenge 1). Deshalb wird die EIGENSCHAFT des Areas
+        // ausgewertet (enthaelt alle aktiven Punkte) und zusaetzlich
+        // onUpdated (deckt zeitlich leicht versetzte Finger ab).
         MultiPointTouchArea {
+            id: tutorialTouch
             anchors.fill: parent
             z: 10
             enabled: page.tutorialActive
             mouseEnabled: false
             onPressed: {
-                if (touchPoints.length >= 2)
+                if (tutorialTouch.touchPoints.length >= 2)
+                    page.dismissTutorial()
+            }
+            onUpdated: {
+                if (tutorialTouch.touchPoints.length >= 2)
                     page.dismissTutorial()
             }
         }

@@ -1,3 +1,12 @@
+* Fri Oct 30 2026 Sailfish Port <port@example.org> - 1.0.6
+- Behoben: Der Rechtsklick-Ersatz (2-Finger-Tipp) reagierte auf dem
+  Geraet nicht - weder Tutorial fortsetzen noch Hauptmenue oeffnen.
+  Ursache: Im Qt-Signal "onPressed" enthaelt das Signal-Argument
+  "touchPoints" nur die *neu* gedueckten Punkte, daher erreichte die
+  Argument-Laenge nie 2. Ausgewertet wird jetzt die Eigenschaft des
+  Touch-Areas (alle aktiven Punkte); zusaetzliche Pruefung in
+  "onUpdated" (Finger treffen selten exakt gleichzeitig auf).
+
 * Fri Oct 30 2026 Sailfish Port <port@example.org> - 1.0.5
 - Ab_sturz auf Sailfish OS 5.1 (Jolla Phone 2026, Silica 1.2.154)
   behoben: "Menu is not a type" ("Seite konnte nicht angezeigt werden").
