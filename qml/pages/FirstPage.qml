@@ -242,90 +242,6 @@ Page {
                 border.width: 4
             }
 
-            // Spielfeld-Steuerung:
-            //  - Finger gedrueckt halten => kontinuierlicher Schub weg vom
-            //    Finger (Original: gehaltene linke Maustaste); der gedueckte
-            //    Punkt folgt der Fingerbewegung
-            //  - Tipp mit zwei Fingern => "Rechtsklick" (Original: RMB) =>
-            //    Hauptmenue (pageMenu) oeffnen
-            //
-            // Solange ein Finger den Schirm beruehrt, wird die
-            // Flickable-Interaktion gesperrt: Der Flickable wuerde sonst
-            // bei minimaler Fingerbewegung die Touch-Punkte "stehlen"
-            // (Grab-Steal) und den Schub abbrechen.
-            MultiPointTouchArea {
-                id: gameTouch
-                anchors.fill: parent
-                enabled: !page.tutorialActive && !pulley.active &&
-                         !pageMenu.open && page.status === PageStatus.Active
-
-                property int propelId: -1
-                property bool twoFinger: false
-
-                function stopPropel() {
-                    if (propelId !== -1) {
-                        propelId = -1
-                        Game.endPropel(page.molecules)
-                    }
-                    twoFinger = false
-                }
-
-                function unlockFlick() {
-                    gameFlick.interactive = true
-                }
-
-                // Unterbrechung (z. B. Pulley-Geste, App-Wechsel) sauber behandeln
-                onEnabledChanged: {
-                    stopPropel()
-                    if (!enabled) unlockFlick()
-                }
-                onCanceled: {
-                    stopPropel()
-                    unlockFlick()
-                }
-
-                onPressed: {
-                    gameFlick.interactive = false
-                    if (gameTouch.touchPoints.length >= 2) {
-                        // Rechtsklick-Ersatz: beide Finger => Hauptmenue
-                        stopPropel()
-                        pageMenu.open = true
-                    } else if (!gameTouch.twoFinger && propelId === -1) {
-                        propelId = touchPoints[0].id
-                        Game.startPropel(page.molecules,
-                                         touchPoints[0].x, touchPoints[0].y)
-                    }
-                }
-                onUpdated: {
-                    // Zwei-Finger-Erkennung auch hier: die Finger kommen
-                    // selten exakt gleich auf (Signal-Argument: enthaelt
-                    // nur die *neu* gedueckten Punkte, die EIGENSCHAFT des
-                    // Areas alle aktiven)
-                    if (gameTouch.touchPoints.length >= 2) {
-                        stopPropel()
-                        pageMenu.open = true
-                        return
-                    }
-                    if (gameTouch.twoFinger) return
-                    for (var i = 0; i < touchPoints.length; i++) {
-                        if (touchPoints[i].id === propelId)
-                            Game.updateAim(page.molecules,
-                                           touchPoints[i].x, touchPoints[i].y)
-                    }
-                }
-                onReleased: {
-                    for (var i = 0; i < touchPoints.length; i++) {
-                        if (touchPoints[i].id === propelId)
-                            stopPropel()
-                    }
-                    // 2-Finger-Geste beenden, sobald weniger als 2 Finger aktiv
-                    if (gameTouch.touchPoints.length < 2)
-                        gameTouch.twoFinger = false
-                    if (gameTouch.touchPoints.length === 0)
-                        unlockFlick()
-                }
-            }
-
             // Nachrichten (Tutorial / Sieg / Niederlage) wie message_label
             Text {
                 anchors.centerIn: parent
@@ -342,6 +258,101 @@ Page {
             }
         }
 
+    }
+
+    // ------------------------------------------------------ Page-Ebene Spiel-Touch
+    //
+    // Spiel-, Tutorial- und Hauptmenue-Overlay liegen bewusst
+    // AUSSERHALB des SilicaFlickable (direkte Kinder der Page): der
+    // Flickable kann den Touch-Flaechen damit keine Touch-Punkte
+    // wegnehmen (Grab-Steal beim Ziehen) - die Tipps kommen garantiert
+    // an. Der obere Bildschirmrand bleibt fuer die Spiel-Touch-Flaeche
+    // ausgespart, damit die Pull-Down-Geste (Pulley-Menue) den
+    // Flickable erreicht.
+    //
+    // Steuerung (Pendant zur Maus im Original):
+    //  - Finger gedrueckt halten = Schub weg vom Finger (Original:
+    //    gehaltene linke Maustaste); Richtung folgt dem Finger
+    //  - Doppeltipp oder gleichzeitiger Tipp mit zwei Fingern =
+    //    "Rechtsklick" (Original: RMB) = Hauptmenue oeffnen
+    // Die Beruehrungspunkte liegen in Page-Koordinaten vor und werden
+    // in die festen Weltkoordinaten (1280x720, skaliert) umgerechnet.
+    MultiPointTouchArea {
+        id: gameTouch
+        anchors.fill: parent
+        anchors.topMargin: 72  // Streifen fuer die Pull-Down-Geste
+        z: 4
+        enabled: !page.tutorialActive && !pulley.active &&
+                 !pageMenu.open && page.status === PageStatus.Active
+
+        property int propelId: -1
+        property bool twoFinger: false
+        property real lastTapTime: 0
+
+        function toWorldX(px) { return (px - page.worldOffsetX) / page.worldScale }
+        function toWorldY(py) { return (py - page.worldOffsetY) / page.worldScale }
+
+        function stopPropel() {
+            if (propelId !== -1) {
+                propelId = -1
+                Game.endPropel(page.molecules)
+            }
+            twoFinger = false
+        }
+
+        // Unterbrechung (z. B. Pulley-Geste, App-Wechsel) sauber behandeln
+        onEnabledChanged: stopPropel()
+        onCanceled: stopPropel()
+
+        onPressed: {
+            console.log("[touch] pressed:", gameTouch.touchPoints.length,
+                        "enabled:", enabled)
+            if (gameTouch.touchPoints.length >= 2) {
+                // Rechtsklick-Ersatz: beide Finger => Hauptmenue
+                stopPropel()
+                pageMenu.open = true
+            } else if (!gameTouch.twoFinger && propelId === -1) {
+                var p = touchPoints[0]
+                propelId = p.id
+                Game.startPropel(page.molecules,
+                                 gameTouch.toWorldX(p.x), gameTouch.toWorldY(p.y))
+            }
+        }
+        onUpdated: {
+            // Zwei-Finger-Erkennung auch hier: die Finger kommen selten
+            // exakt gleich auf (Signal-Argument enthaelt nur die *neu*
+            // gedueckten Punkte, die EIGENSCHAFT alle aktiven - Qt-Falle!)
+            if (gameTouch.touchPoints.length >= 2) {
+                stopPropel()
+                pageMenu.open = true
+                return
+            }
+            if (gameTouch.twoFinger) return
+            for (var i = 0; i < touchPoints.length; i++) {
+                if (touchPoints[i].id === propelId)
+                    Game.updateAim(page.molecules,
+                                   gameTouch.toWorldX(touchPoints[i].x),
+                                   gameTouch.toWorldY(touchPoints[i].y))
+            }
+        }
+        onReleased: {
+            for (var i = 0; i < touchPoints.length; i++) {
+                if (touchPoints[i].id === propelId)
+                    stopPropel()
+            }
+            // 2-Finger-Geste beenden, sobald weniger als 2 Finger aktiv
+            if (gameTouch.touchPoints.length < 2)
+                gameTouch.twoFinger = false
+            // Doppeltipp = Rechtsklick-Ersatz (Hauptmenue oeffnen)
+            if (gameTouch.touchPoints.length === 0) {
+                var now = Date.now()
+                if (now - gameTouch.lastTapTime < 400) {
+                    stopPropel()
+                    pageMenu.open = true
+                }
+                gameTouch.lastTapTime = now
+            }
+        }
     }
 
     // ------------------------------------------------------ Page-Ebene Overlays

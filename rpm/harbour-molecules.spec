@@ -9,7 +9,7 @@ Name:       harbour-molecules
 # << macros
 
 Summary:    Molecules - ein Osmos-Klon für Sailfish OS
-Version:    1.0.9
+Version:    1.0.10
 Release:    1
 Group:      Qt/Qt
 License:    Unlicense

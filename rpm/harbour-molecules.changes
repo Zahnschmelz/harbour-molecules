@@ -1,3 +1,16 @@
+* Fri Oct 30 2026 Sailfish Port <port@example.org> - 1.0.10
+- Die Spiel-Touch-Flaeche liegt jetzt ebenso ausserhalb des
+  SilicaFlickable auf der Page: der Flickable kann die Beruehrungen
+  nicht mehr abfangen, Schub und Gesten kommen zuverlaessig an. Die
+  Beruehrungspunkte werden von Page- in Weltkoordinaten umgerechnet.
+  Ein 72 px breiter Streifen am oberen Bildschirmrand bleibt frei,
+  damit die Pull-Down-Geste (Pulley-Menue) den Flickable erreicht.
+- Neu: Doppeltipp im Spiel oeffnet zusaetzlich das Hauptmenue
+  (Rechtsklick-Ersatz wie im Tutorial).
+- Diagnose: die Spiel-Touch-Flaeche meldet Beruehrungen per
+  console.log (journalctl / Startlog) - Hilfestellung beim
+  Ferndebugging.
+
 * Fri Oct 30 2026 Sailfish Port <port@example.org> - 1.0.9
 - Tutorial- und Hauptmenue-Overlay liegen jetzt ausserhalb des
   SilicaFlickable als direkte Kinder der Page: der Flickable kann der
