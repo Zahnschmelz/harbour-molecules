@@ -189,18 +189,21 @@ Page {
         // intern auf 0 gesetzt, der Content beginnt also ohnehin buendig
         // am oberen Rand.
 
-        MenuItem {
-            text: qsTr("Neues Level")
-            onClicked: page.newLevel()
-        }
-        IconTextSwitch {
-            text: qsTr("Musik")
-            checked: page.musicEnabled
-            onClicked: page.toggleMusic()
-        }
-        MenuItem {
-            text: qsTr("Über Molecules")
-            onClicked: pageStack.push(Qt.resolvedUrl("AboutPage.qml"))
+        PullDownMenu {
+            id: pulley
+            MenuItem {
+                text: qsTr("Neues Level")
+                onClicked: page.newLevel()
+            }
+            IconTextSwitch {
+                text: qsTr("Musik")
+                checked: page.musicEnabled
+                onClicked: page.toggleMusic()
+            }
+            MenuItem {
+                text: qsTr("Über Molecules")
+                onClicked: pageStack.push(Qt.resolvedUrl("AboutPage.qml"))
+            }
         }
 
         // Geteilte Noise-Textur (Ersatz für Godots NoiseTexture2D/FastNoiseLite,
