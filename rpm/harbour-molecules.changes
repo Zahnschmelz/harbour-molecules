@@ -1,3 +1,14 @@
+* Fri Oct 30 2026 Sailfish Port <port@example.org> - 1.0.13
+- Das Hauptmenue-Overlay nutzt eigene klickbare Zeilen (Mausflaeche +
+  Text) statt Silica-MenuItems: der MenuItem der Silica-Generation
+  1.2 ist nur noch ein Label ohne interne Klickflaeche und daher
+  ausserhalb des Pulley-Systems nicht anklickbar ("Neues Level",
+  "Ueber Molecules" und "Schliessen" waren tote Schrift; nur der
+  IconTextSwitch mit eigener Schaltflaeche funktionierte).
+- Schriftfarbe im Menue-Overlay: schwarz auf dem hellen Panel
+  (zuvor weiss-auf-gruen, schwer lesbar). Die Musikzeile zeigt den
+  Zustand als "Musik: An/Aus".
+
 * Fri Oct 30 2026 Sailfish Port <port@example.org> - 1.0.12
 - Touch-Beruehrungspunkte werden ueber ihre Objektidentitaet
   wiedergeerkannt und in einer eigenen Aktivliste gefuehrt:

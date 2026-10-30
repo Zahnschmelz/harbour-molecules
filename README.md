@@ -113,11 +113,11 @@ If you copy the RPM to the device by other means (e.g. via `scp`):
 ```bash
 # RPM path: RPMS/ when built with sfdk on the command line,
 # RPM/build/ when built with Qt Creator
-scp RPMS/harbour-molecules-1.0.12-1.aarch64.rpm defaultuser@<IP>:/home/defaultuser/
+scp RPMS/harbour-molecules-1.0.13-1.aarch64.rpm defaultuser@<IP>:/home/defaultuser/
 ssh defaultuser@<IP>
-devel-su pkcon install-local harbour-molecules-1.0.12-1.aarch64.rpm
+devel-su pkcon install-local harbour-molecules-1.0.13-1.aarch64.rpm
 # or alternatively:
-devel-su rpm -Uvh /home/defaultuser/harbour-molecules-1.0.12-1.aarch64.rpm
+devel-su rpm -Uvh /home/defaultuser/harbour-molecules-1.0.13-1.aarch64.rpm
 ```
 
 **Molecules** then appears in the app grid (including icon).
@@ -149,7 +149,7 @@ sfdk build   # RPMs in ./RPMS (version taken from git tags, keep tag == yaml ver
 | Win: `mass > total * 0.5`, tutorial total × 1.5 | identical in `game.js` + `FirstPage.qml` | |
 | `canvas_item` shader (Fresnel + noise lightning) | QML `ShaderEffect` (GLSL ES), fragment shader taken over 1:1 | Qt blends premultiplied → added `rgb *= alpha`, result = Godot look |
 | `NoiseTexture2D` + `FastNoiseLite` (seamless, generated at runtime) | `qml/images/noise.png` (256×256, seamlessly tileable value noise) | visually equivalent, sampled identically in the shader |
-| Main menu (buttons), toggled by right mouse button | self-contained overlay (plain `Item` + Silica `MenuItem`s, opened by two-finger tap) + pulley menu + About page | the attachable type `Menu` was removed in Silica 1.2; Quit omitted (Sailfish gestures close the app) |
+| Main menu (buttons), toggled by right mouse button | self-contained overlay (plain `Item` + Silica `MenuItem`s, opened by two-finger tap) + pulley menu + About page | the attachable type `Menu` was removed in Silica 1.2; the overlay rows are plain `MouseArea`+`Text` (on Silica 1.2 a `MenuItem` outside a pulley is a clickless label); Quit omitted (Sailfish gestures close the app) |
 | `AudioStreamPlayer`, −20 dB, loop | `Audio` created at runtime (`volume: 0.1`, loop via `onStopped`); silent without the Multimedia plugin | |
 | 1280×720, stretch `2d`/`keep_width` | fixed world coordinates 1280×720, fit-inside, centered | black borders on taller displays, gameplay proportions exactly preserved |
 

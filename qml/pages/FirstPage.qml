@@ -426,30 +426,58 @@ Page {
             radius: Theme.paddingSmall
             color: Theme.highlightColor
 
+            // Zeilen als eigene Maus-Flaechen: der MenuItem der neuen
+            // Silica-Generation (1.2) ist nur noch ein Label ohne interne
+            // Klickflaeche - anklickbar ist er ausschliesslich innerhalb
+            // des Pulley-Systems, das selbst klickt. Ausserhalb (wie hier)
+            // waere er tote Schrift.
             Column {
                 id: menuColumn
                 width: parent.width
                 y: Theme.paddingMedium
 
-                MenuItem {
-                    text: qsTr("Neues Level")
-                    onClicked: { pageMenu.open = false; page.newLevel() }
-                }
-                IconTextSwitch {
-                    text: qsTr("Musik")
-                    checked: page.musicEnabled
-                    onClicked: page.toggleMusic()
-                }
-                MenuItem {
-                    text: qsTr("Über Molecules")
-                    onClicked: {
-                        pageMenu.open = false
-                        pageStack.push(Qt.resolvedUrl("AboutPage.qml"))
+                Repeater {
+                    model: [
+                        qsTr("Neues Level"),
+                        qsTr("Musik: ") + (page.musicEnabled ? qsTr("An") : qsTr("Aus")),
+                        qsTr("Über Molecules"),
+                        qsTr("Schließen")
+                    ]
+
+                    Rectangle {
+                        width: menuColumn.width
+                        height: Theme.itemSizeSmall
+                        color: rowMouse.pressed ? Qt.rgba(0, 0, 0, 0.15) : "transparent"
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: modelData
+                            color: "black"
+                            font.pixelSize: Theme.fontSizeMedium
+                        }
+
+                        // duenne Trenlinie zwischen den Zeilen
+                        Rectangle {
+                            anchors { left: parent.left; right: parent.right; bottom: parent.bottom }
+                            height: 1
+                            visible: index < 3
+                            color: Qt.rgba(0, 0, 0, 0.25)
+                        }
+
+                        MouseArea {
+                            id: rowMouse
+                            anchors.fill: parent
+                            onClicked: {
+                                pageMenu.open = false
+                                if (index === 0)
+                                    page.newLevel()
+                                else if (index === 1)
+                                    page.toggleMusic()
+                                else if (index === 2)
+                                    pageStack.push(Qt.resolvedUrl("AboutPage.qml"))
+                            }
+                        }
                     }
-                }
-                MenuItem {
-                    text: qsTr("Schließen")
-                    onClicked: pageMenu.open = false
                 }
             }
         }
