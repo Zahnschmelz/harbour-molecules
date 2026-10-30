@@ -10,7 +10,8 @@ import "../js/game.js" as Game
  *  - Spielfeld in festen Weltkoordinaten 1280x720 (wie das Original),
  *    passend skaliert und zentriert ("fit inside")
  *  - Hauptmenü -> Sailfish-Pulley-Menü (Neues Level / Musik / Über),
- *    zusätzlich als Silica-Menu (Rechtsklick-Ersatz: 2-Finger-Tipp)
+ *    zusätzlich als eigenes Overlay-Menü (Rechtsklick-Ersatz:
+ *    2-Finger-Tipp; Silica 1.2 kennt den attachbaren Typen Menu nicht)
  *  - Tutorial-Overlay mit 2-Finger-Tipp zum Fortsetzen (Original: RMB)
  *  - Ambient-Musik (Autoplay, Loop, -20 dB wie im Original)
  */
@@ -235,7 +236,7 @@ Page {
                 if (gameTouch.touchPoints.length >= 2) {
                     // Rechtsklick-Ersatz: beide Finger => Hauptmenue
                     stopPropel()
-                    pageMenu.open()
+                    pageMenu.open = true
                 } else if (!gameTouch.twoFinger && propelId === -1) {
                     propelId = touchPoints[0].id
                     Game.startPropel(page.molecules,
@@ -313,21 +314,65 @@ Page {
     // Pendant zum MainMenu des Originals (wurde dort per Rechtsklick
     // geoeffnet). Auf dem Telefon zusaetzlich zum Pulley-Menue per
     // "Rechtsklick" erreichbar: Tipp mit zwei Fingern im Spielfeld.
-    Menu {
+    //
+    // Wichtig: Die neue Silica-Generation (1.2.x, Sailfish OS 5.1 /
+    // Jolla Phone 2026) kennt den attachbaren Typen "Menu" nicht mehr
+    // (wie schon SilicaPage entfernt) - daher ein eigenes, Silica-artig
+    // gestyltes Overlay aus MenuItems. Funktioniert in allen Silica-
+    // Generationen.
+    Item {
         id: pageMenu
+        anchors.fill: parent
+        z: 20
+        visible: open
+        property bool open: false
 
-        MenuItem {
-            text: qsTr("Neues Level")
-            onClicked: page.newLevel()
+        // Hintergrund: jeder Tipp schliesst das Menue
+        // (Original: Hauptmenue per Rechtsklick zu-/zuschalten)
+        MultiPointTouchArea {
+            anchors.fill: parent
+            onPressed: pageMenu.open = false
+
+            Rectangle {
+                anchors.fill: parent
+                color: Qt.rgba(0, 0, 0, 0.7)
+            }
         }
-        IconTextSwitch {
-            text: qsTr("Musik")
-            checked: page.musicEnabled
-            onClicked: page.toggleMusic()
-        }
-        MenuItem {
-            text: qsTr("Über Molecules")
-            onClicked: pageStack.push(Qt.resolvedUrl("AboutPage.qml"))
+
+        // Menue-Panel (Pendant zu den MainMenu-Buttons des Originals)
+        Rectangle {
+            anchors.centerIn: parent
+            width: 480
+            height: menuColumn.height + 2 * Theme.paddingMedium
+            radius: Theme.paddingSmall
+            color: Theme.highlightColor
+
+            Column {
+                id: menuColumn
+                width: parent.width
+                y: Theme.paddingMedium
+
+                MenuItem {
+                    text: qsTr("Neues Level")
+                    onClicked: { pageMenu.open = false; page.newLevel() }
+                }
+                IconTextSwitch {
+                    text: qsTr("Musik")
+                    checked: page.musicEnabled
+                    onClicked: page.toggleMusic()
+                }
+                MenuItem {
+                    text: qsTr("Über Molecules")
+                    onClicked: {
+                        pageMenu.open = false
+                        pageStack.push(Qt.resolvedUrl("AboutPage.qml"))
+                    }
+                }
+                MenuItem {
+                    text: qsTr("Schließen")
+                    onClicked: pageMenu.open = false
+                }
+            }
         }
     }
 

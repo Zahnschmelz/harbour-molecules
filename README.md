@@ -111,11 +111,13 @@ The finished RPM is in `RPM/build/` inside the build directory.
 If you copy the RPM to the device by other means (e.g. via `scp`):
 
 ```bash
-scp RPM/build/harbour-molecules-1.0.4-1.aarch64.rpm defaultuser@<IP>:/home/defaultuser/
+# RPM path: RPMS/ when built with sfdk on the command line,
+# RPM/build/ when built with Qt Creator
+scp RPMS/harbour-molecules-1.0.5-1.aarch64.rpm defaultuser@<IP>:/home/defaultuser/
 ssh defaultuser@<IP>
-devel-su pkcon install-local harbour-molecules-1.0.4-1.aarch64.rpm
+devel-su pkcon install-local harbour-molecules-1.0.5-1.aarch64.rpm
 # or alternatively:
-devel-su rpm -Uvh /home/defaultuser/harbour-molecules-1.0.4-1.aarch64.rpm
+devel-su rpm -Uvh /home/defaultuser/harbour-molecules-1.0.5-1.aarch64.rpm
 ```
 
 **Molecules** then appears in the app grid (including icon).
@@ -131,7 +133,7 @@ For building without the IDE (Platform SDK set up according to
 cd harbour-molecules
 sfdk engine start
 sfdk config target=SailfishOS-5.x.x-aarch64
-sfdk package   # resp. classic: mb2 -t SailfishOS-5.x.x-aarch64 build
+sfdk build   # RPMs in ./RPMS (version taken from git tags, keep tag == yaml version)
 ```
 
 ---
@@ -184,6 +186,11 @@ the Silica default font fits visually), Quit button, mouse-position-as-cursor lo
   `allowedOrientations`, pulley integration). All other types used here
   (`ApplicationWindow`, `PullDownMenu`, `IconTextSwitch`,
   `CoverBackground`, `Theme`, `PageStatus`, …) still exist.
+- **"Menu is not a type" / "page could not be displayed"** (seen with 1.0.4):
+  the same new Silica generation (1.2.x) also **removed** the attachable
+  type `Menu`. As of **1.0.5** the right-click main menu is a
+  self-contained overlay (plain `Item` + Silica `MenuItem`s) working on
+  all Silica generations; the pulley menu is unaffected.
 - **"Cannot deploy: Missing Sailfish OS device information in the kit"**:
   no device assigned to the kit. *Extras → Options → Devices* → create a
   "Sailfish OS Device" (phone's IP, port 22, user `defaultuser` resp. `nemo`,

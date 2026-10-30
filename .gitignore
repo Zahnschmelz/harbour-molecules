@@ -14,3 +14,9 @@ RPM/
 *.rpm
 rpm/*.tar.bz2
 .DS_Store
+
+# sfdk CLI build artefacts
+RPMS/
+.sfdk/
+documentation.list
+harbour-molecules

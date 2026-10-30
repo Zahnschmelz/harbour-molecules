@@ -1,3 +1,12 @@
+* Fri Oct 30 2026 Sailfish Port <port@example.org> - 1.0.5
+- Ab_sturz auf Sailfish OS 5.1 (Jolla Phone 2026, Silica 1.2.154)
+  behoben: "Menu is not a type" ("Seite konnte nicht angezeigt werden").
+  Die neue Silica-Generation hat - wie zuvor schon SilicaPage - auch
+  den attachbaren Typen Menu entfernt. Das Hauptmenue (Rechtsklick-
+  Ersatz: 2-Finger-Tipp) ist jetzt ein eigenes, Silica-artig gestyltes
+  Overlay aus MenuItems und laeuft mit allen Silica-Generationen;
+  das Pulley-Menue bleibt wie gewohnt erhalten.
+
 * Fri Oct 30 2026 Sailfish Port <port@example.org> - 1.0.4
 - Steuerung wie im Original: Gedrückt-halten für kontinuierlichen Schub
   (ein Ausstoß pro Physik-Tick, Richtung folgt dem Finger, wie gehaltene
@@ -36,7 +45,7 @@
   importiert: die App startet nun auch ohne Multimedia-Plugin
   (dann ohne Hintergrundmusik)
 
-* Mon Oct 30 2026 Sailfish Port <port@example.org> - 1.0.0
+* Fri Oct 30 2026 Sailfish Port <port@example.org> - 1.0.0
 - Erste Sailfish-OS-Version (natives Silica/QML-Port des Godot-Spiels)
 - Touch-Steuerung: Tippen, um dich vom Tappunkt weg zu stoßen
 - Pulley-Menü: Neues Level, Musik an/aus, Über
