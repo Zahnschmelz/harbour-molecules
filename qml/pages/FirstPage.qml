@@ -20,6 +20,15 @@ import "../js/game.js" as Game
 // Sailfish OS 5.1 (Jolla Phone 2026, Silica 1.2.x) wurde der
 // C++-Typ SilicaPage entfernt - der Composite-Typ Page.qml bietet
 // dieselbe API (status, allowedOrientations, Pulley-Menü, ...).
+//
+// WICHTIG (Silica 1.2): Der entfernte C++-Page verband früher das
+// Pulley-Menü automatisch mit dem Flickable der Seite. Das neue
+// Composite-Page tut das nicht - Pulley und Inhalte muessen sich
+// innerhalb eines SilicaFlickable befinden, das Pulley-Menue findet
+// sein Flickable ueber die Parent-Kette (Util.findFlickable).
+// Ohne SilicaFlickable bleibt das Pulley "blind"
+// (Meldungen wie "Cannot read property 'contentX' of null") und
+// die Touch-Behandlung der Seite laeuft ins Leere.
 Page {
     id: page
 
@@ -166,153 +175,18 @@ Page {
         Molecule {}
     }
 
-    // Geteilte Noise-Textur (Ersatz für Godots NoiseTexture2D/FastNoiseLite,
-    // nahtlos kachelbar, POT => Repeat funktioniert auf GLES2)
-    ShaderEffectSource {
-        id: noiseSource
-        x: -260
-        y: -260  // außerhalb des sichtbaren Bereichs
-        width: 256
-        height: 256
-        hideSource: true
-        live: false
-        smooth: true
-        wrapMode: ShaderEffectSource.Repeat
-        sourceItem: Image { source: "../images/noise.png" }
-    }
-
-    // Schwarzer Hintergrund (default_clear_color im Original)
-    Rectangle {
+    // ------------------------------------------------------ Inhalte
+    SilicaFlickable {
+        id: gameFlick
         anchors.fill: parent
-        color: "black"
-    }
+        contentWidth: width
+        contentHeight: height
 
-    // ------------------------------------------------------ Spielfeld
-    Item {
-        id: world
-        width: Game.WORLD_W
-        height: Game.WORLD_H
-        transformOrigin: Item.TopLeft
-        scale: page.worldScale
-        x: page.worldOffsetX
-        y: page.worldOffsetY
-
-        // Spielfeld-Rahmen (Line2D im Original, gleiche Farbe)
-        Rectangle {
-            anchors.fill: parent
-            color: "transparent"
-            border.color: Qt.rgba(0.0, 0.6, 0.702, 0.5)
-            border.width: 4
-        }
-
-        // Spielfeld-Steuerung:
-        //  - Finger gedrueckt halten => kontinuierlicher Schub weg vom
-        //    Finger (Original: gehaltene linke Maustaste); der gedueckte
-        //    Punkt folgt der Fingerbewegung
-        //  - Tipp mit zwei Fingern => "Rechtsklick" (Original: RMB) =>
-        //    Hauptmenue (pageMenu) oeffnen
-        MultiPointTouchArea {
-            id: gameTouch
-            anchors.fill: parent
-            enabled: !page.tutorialActive && !pulley.active &&
-                     !pageMenu.open && page.status === PageStatus.Active
-
-            property int propelId: -1
-            property bool twoFinger: false
-
-            function stopPropel() {
-                if (propelId !== -1) {
-                    propelId = -1
-                    Game.endPropel(page.molecules)
-                }
-                twoFinger = false
-            }
-
-            // Unterbrechung (z. B. Pulley-Geste, App-Wechsel) sauber behandeln
-            onEnabledChanged: stopPropel()
-            onCanceled: stopPropel()
-
-            onPressed: {
-                if (gameTouch.touchPoints.length >= 2) {
-                    // Rechtsklick-Ersatz: beide Finger => Hauptmenue
-                    stopPropel()
-                    pageMenu.open = true
-                } else if (!gameTouch.twoFinger && propelId === -1) {
-                    propelId = touchPoints[0].id
-                    Game.startPropel(page.molecules,
-                                     touchPoints[0].x, touchPoints[0].y)
-                }
-            }
-            onUpdated: {
-                // Zwei-Finger-Erkennung auch hier: die Finger kommen
-                // selten exakt gleich auf (Signal-Argument siehe oben)
-                if (gameTouch.touchPoints.length >= 2) {
-                    stopPropel()
-                    pageMenu.open = true
-                    return
-                }
-                if (gameTouch.twoFinger) return
-                for (var i = 0; i < touchPoints.length; i++) {
-                    if (touchPoints[i].id === propelId)
-                        Game.updateAim(page.molecules,
-                                       touchPoints[i].x, touchPoints[i].y)
-                }
-            }
-            onReleased: {
-                for (var i = 0; i < touchPoints.length; i++) {
-                    if (touchPoints[i].id === propelId)
-                        stopPropel()
-                }
-                // 2-Finger-Geste beenden, sobald weniger als 2 Finger aktiv
-                if (gameTouch.touchPoints.length < 2)
-                    gameTouch.twoFinger = false
-            }
-        }
-
-        // Tutorial-Overlay: Tipp mit zwei Fingern = Rechtsklick-Ersatz,
-        // setzt das Tutorial fort (Original: "[Press RMB to continue]")
-        //
-        // Achtung Qt-Falle: Das Signal-Argument "touchPoints" von
-        // onPressed enthaelt nur die *neu* gedueckten Punkte, nicht alle
-        // aktiven! Der zweite Finger sieht also nur sich selbst
-        // (Liste-Laenge 1). Deshalb wird die EIGENSCHAFT des Areas
-        // ausgewertet (enthaelt alle aktiven Punkte) und zusaetzlich
-        // onUpdated (deckt zeitlich leicht versetzte Finger ab).
-        MultiPointTouchArea {
-            id: tutorialTouch
-            anchors.fill: parent
-            z: 10
-            enabled: page.tutorialActive
-            mouseEnabled: false
-            onPressed: {
-                if (tutorialTouch.touchPoints.length >= 2)
-                    page.dismissTutorial()
-            }
-            onUpdated: {
-                if (tutorialTouch.touchPoints.length >= 2)
-                    page.dismissTutorial()
-            }
-        }
-
-        // Nachrichten (Tutorial / Sieg / Niederlage) wie message_label
-        Text {
-            anchors.centerIn: parent
-            width: parent.width * 0.8
-            horizontalAlignment: Text.AlignHCenter
-            verticalAlignment: Text.AlignVCenter
-            wrapMode: Text.Wrap
-            font.pixelSize: 32
-            color: "white"
-            style: Text.Outline
-            styleColor: "black"
-            text: page.messageText
-            visible: page.messageText.length > 0
-        }
-    }
-
-    // ------------------------------------------------------ Pulley-Menü
-    PullDownMenu {
-        id: pulley
+        // Pulley-Menue. Muss innerhalb des SilicaFlickable deklariert
+        // sein (Silica 1.2, siehe Kommentar oben). spacing 0: Die Seite
+        // ist nicht scrollbar, der Content soll ohne Pulley-Streifen
+        // am oberen Rand beginnen.
+        spacing: 0
 
         MenuItem {
             text: qsTr("Neues Level")
@@ -327,69 +201,235 @@ Page {
             text: qsTr("Über Molecules")
             onClicked: pageStack.push(Qt.resolvedUrl("AboutPage.qml"))
         }
-    }
 
-    // ------------------------------------------------------ Hauptmenü
-    // Pendant zum MainMenu des Originals (wurde dort per Rechtsklick
-    // geoeffnet). Auf dem Telefon zusaetzlich zum Pulley-Menue per
-    // "Rechtsklick" erreichbar: Tipp mit zwei Fingern im Spielfeld.
-    //
-    // Wichtig: Die neue Silica-Generation (1.2.x, Sailfish OS 5.1 /
-    // Jolla Phone 2026) kennt den attachbaren Typen "Menu" nicht mehr
-    // (wie schon SilicaPage entfernt) - daher ein eigenes, Silica-artig
-    // gestyltes Overlay aus MenuItems. Funktioniert in allen Silica-
-    // Generationen.
-    Item {
-        id: pageMenu
-        anchors.fill: parent
-        z: 20
-        visible: open
-        property bool open: false
+        // Geteilte Noise-Textur (Ersatz für Godots NoiseTexture2D/FastNoiseLite,
+        // nahtlos kachelbar, POT => Repeat funktioniert auf GLES2)
+        ShaderEffectSource {
+            id: noiseSource
+            x: -260
+            y: -260  // außerhalb des sichtbaren Bereichs
+            width: 256
+            height: 256
+            hideSource: true
+            live: false
+            smooth: true
+            wrapMode: ShaderEffectSource.Repeat
+            sourceItem: Image { source: "../images/noise.png" }
+        }
 
-        // Hintergrund: jeder Tipp schliesst das Menue
-        // (Original: Hauptmenue per Rechtsklick zu-/zuschalten)
-        MultiPointTouchArea {
+        // Schwarzer Hintergrund (default_clear_color im Original)
+        Rectangle {
             anchors.fill: parent
-            onPressed: pageMenu.open = false
+            color: "black"
+        }
 
+        // ------------------------------------------------------ Spielfeld
+        Item {
+            id: world
+            width: Game.WORLD_W
+            height: Game.WORLD_H
+            transformOrigin: Item.TopLeft
+            scale: page.worldScale
+            x: page.worldOffsetX
+            y: page.worldOffsetY
+
+            // Spielfeld-Rahmen (Line2D im Original, gleiche Farbe)
             Rectangle {
                 anchors.fill: parent
-                color: Qt.rgba(0, 0, 0, 0.7)
+                color: "transparent"
+                border.color: Qt.rgba(0.0, 0.6, 0.702, 0.5)
+                border.width: 4
+            }
+
+            // Spielfeld-Steuerung:
+            //  - Finger gedrueckt halten => kontinuierlicher Schub weg vom
+            //    Finger (Original: gehaltene linke Maustaste); der gedueckte
+            //    Punkt folgt der Fingerbewegung
+            //  - Tipp mit zwei Fingern => "Rechtsklick" (Original: RMB) =>
+            //    Hauptmenue (pageMenu) oeffnen
+            //
+            // Solange ein Finger den Schirm beruehrt, wird die
+            // Flickable-Interaktion gesperrt: Der Flickable wuerde sonst
+            // bei minimaler Fingerbewegung die Touch-Punkte "stehlen"
+            // (Grab-Steal) und den Schub abbrechen.
+            MultiPointTouchArea {
+                id: gameTouch
+                anchors.fill: parent
+                enabled: !page.tutorialActive && !pulley.active &&
+                         !pageMenu.open && page.status === PageStatus.Active
+
+                property int propelId: -1
+                property bool twoFinger: false
+
+                function stopPropel() {
+                    if (propelId !== -1) {
+                        propelId = -1
+                        Game.endPropel(page.molecules)
+                    }
+                    twoFinger = false
+                }
+
+                function unlockFlick() {
+                    gameFlick.interactive = true
+                }
+
+                // Unterbrechung (z. B. Pulley-Geste, App-Wechsel) sauber behandeln
+                onEnabledChanged: {
+                    stopPropel()
+                    if (!enabled) unlockFlick()
+                }
+                onCanceled: {
+                    stopPropel()
+                    unlockFlick()
+                }
+
+                onPressed: {
+                    gameFlick.interactive = false
+                    if (gameTouch.touchPoints.length >= 2) {
+                        // Rechtsklick-Ersatz: beide Finger => Hauptmenue
+                        stopPropel()
+                        pageMenu.open = true
+                    } else if (!gameTouch.twoFinger && propelId === -1) {
+                        propelId = touchPoints[0].id
+                        Game.startPropel(page.molecules,
+                                         touchPoints[0].x, touchPoints[0].y)
+                    }
+                }
+                onUpdated: {
+                    // Zwei-Finger-Erkennung auch hier: die Finger kommen
+                    // selten exakt gleich auf (Signal-Argument: enthaelt
+                    // nur die *neu* gedueckten Punkte, die EIGENSCHAFT des
+                    // Areas alle aktiven)
+                    if (gameTouch.touchPoints.length >= 2) {
+                        stopPropel()
+                        pageMenu.open = true
+                        return
+                    }
+                    if (gameTouch.twoFinger) return
+                    for (var i = 0; i < touchPoints.length; i++) {
+                        if (touchPoints[i].id === propelId)
+                            Game.updateAim(page.molecules,
+                                           touchPoints[i].x, touchPoints[i].y)
+                    }
+                }
+                onReleased: {
+                    for (var i = 0; i < touchPoints.length; i++) {
+                        if (touchPoints[i].id === propelId)
+                            stopPropel()
+                    }
+                    // 2-Finger-Geste beenden, sobald weniger als 2 Finger aktiv
+                    if (gameTouch.touchPoints.length < 2)
+                        gameTouch.twoFinger = false
+                    if (gameTouch.touchPoints.length === 0)
+                        unlockFlick()
+                }
+            }
+
+            // Tutorial-Overlay: Tipp mit zwei Fingern = Rechtsklick-Ersatz,
+            // setzt das Tutorial fort (Original: "[Press RMB to continue]")
+            MultiPointTouchArea {
+                id: tutorialTouch
+                anchors.fill: parent
+                z: 10
+                enabled: page.tutorialActive
+                mouseEnabled: false
+                onPressed: {
+                    gameFlick.interactive = false
+                    if (tutorialTouch.touchPoints.length >= 2)
+                        page.dismissTutorial()
+                }
+                onUpdated: {
+                    if (tutorialTouch.touchPoints.length >= 2)
+                        page.dismissTutorial()
+                }
+                onReleased: {
+                    if (tutorialTouch.touchPoints.length === 0)
+                        gameFlick.interactive = true
+                }
+                onCanceled: gameFlick.interactive = true
+                onEnabledChanged: {
+                    if (!enabled) gameFlick.interactive = true
+                }
+            }
+
+            // Nachrichten (Tutorial / Sieg / Niederlage) wie message_label
+            Text {
+                anchors.centerIn: parent
+                width: parent.width * 0.8
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
+                wrapMode: Text.Wrap
+                font.pixelSize: 32
+                color: "white"
+                style: Text.Outline
+                styleColor: "black"
+                text: page.messageText
+                visible: page.messageText.length > 0
             }
         }
 
-        // Menue-Panel (Pendant zu den MainMenu-Buttons des Originals)
-        Rectangle {
-            anchors.centerIn: parent
-            width: 480
-            height: menuColumn.height + 2 * Theme.paddingMedium
-            radius: Theme.paddingSmall
-            color: Theme.highlightColor
+        // ------------------------------------------------------ Hauptmenü
+        // Pendant zum MainMenu des Originals (wurde dort per Rechtsklick
+        // geoeffnet). Auf dem Telefon zusaetzlich zum Pulley-Menue per
+        // "Rechtsklick" erreichbar: Tipp mit zwei Fingern im Spielfeld.
+        //
+        // Wichtig: Die neue Silica-Generation (1.2.x, Sailfish OS 5.1 /
+        // Jolla Phone 2026) kennt den attachbaren Typen "Menu" nicht mehr
+        // (wie schon SilicaPage entfernt) - daher ein eigenes, Silica-artig
+        // gestyltes Overlay aus MenuItems. Funktioniert in allen Silica-
+        // Generationen.
+        Item {
+            id: pageMenu
+            anchors.fill: parent
+            z: 20
+            visible: open
+            property bool open: false
 
-            Column {
-                id: menuColumn
-                width: parent.width
-                y: Theme.paddingMedium
+            // Hintergrund: jeder Tipp schliesst das Menue
+            // (Original: Hauptmenue per Rechtsklick zu-/zuschalten)
+            MultiPointTouchArea {
+                anchors.fill: parent
+                onPressed: pageMenu.open = false
 
-                MenuItem {
-                    text: qsTr("Neues Level")
-                    onClicked: { pageMenu.open = false; page.newLevel() }
+                Rectangle {
+                    anchors.fill: parent
+                    color: Qt.rgba(0, 0, 0, 0.7)
                 }
-                IconTextSwitch {
-                    text: qsTr("Musik")
-                    checked: page.musicEnabled
-                    onClicked: page.toggleMusic()
-                }
-                MenuItem {
-                    text: qsTr("Über Molecules")
-                    onClicked: {
-                        pageMenu.open = false
-                        pageStack.push(Qt.resolvedUrl("AboutPage.qml"))
+            }
+
+            // Menue-Panel (Pendant zu den MainMenu-Buttons des Originals)
+            Rectangle {
+                anchors.centerIn: parent
+                width: 480
+                height: menuColumn.height + 2 * Theme.paddingMedium
+                radius: Theme.paddingSmall
+                color: Theme.highlightColor
+
+                Column {
+                    id: menuColumn
+                    width: parent.width
+                    y: Theme.paddingMedium
+
+                    MenuItem {
+                        text: qsTr("Neues Level")
+                        onClicked: { pageMenu.open = false; page.newLevel() }
                     }
-                }
-                MenuItem {
-                    text: qsTr("Schließen")
-                    onClicked: pageMenu.open = false
+                    IconTextSwitch {
+                        text: qsTr("Musik")
+                        checked: page.musicEnabled
+                        onClicked: page.toggleMusic()
+                    }
+                    MenuItem {
+                        text: qsTr("Über Molecules")
+                        onClicked: {
+                            pageMenu.open = false
+                            pageStack.push(Qt.resolvedUrl("AboutPage.qml"))
+                        }
+                    }
+                    MenuItem {
+                        text: qsTr("Schließen")
+                        onClicked: pageMenu.open = false
+                    }
                 }
             }
         }

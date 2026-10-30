@@ -113,11 +113,11 @@ If you copy the RPM to the device by other means (e.g. via `scp`):
 ```bash
 # RPM path: RPMS/ when built with sfdk on the command line,
 # RPM/build/ when built with Qt Creator
-scp RPMS/harbour-molecules-1.0.6-1.aarch64.rpm defaultuser@<IP>:/home/defaultuser/
+scp RPMS/harbour-molecules-1.0.7-1.aarch64.rpm defaultuser@<IP>:/home/defaultuser/
 ssh defaultuser@<IP>
-devel-su pkcon install-local harbour-molecules-1.0.6-1.aarch64.rpm
+devel-su pkcon install-local harbour-molecules-1.0.7-1.aarch64.rpm
 # or alternatively:
-devel-su rpm -Uvh /home/defaultuser/harbour-molecules-1.0.6-1.aarch64.rpm
+devel-su rpm -Uvh /home/defaultuser/harbour-molecules-1.0.7-1.aarch64.rpm
 ```
 
 **Molecules** then appears in the app grid (including icon).
@@ -163,6 +163,11 @@ the Silica default font fits visually), Quit button, mouse-position-as-cursor lo
 - **"Failed to deploy by RPM" / SSH errors**: check the developer mode
   password and the phone's IP (*Settings → Developer Tools → Network*);
   for USB deployment establish the USB network connection.
+- **Pulley menu inert / log spammed with `TypeError: Cannot read property
+  'contentX' of null` from `PulleyMenuBase.qml`, touches dead**: in Silica 1.2
+  (Sailfish OS 5.1) the removed C++ `Page` no longer wires the pulley to a
+  flickable — declare `PullDownMenu` **inside** a `SilicaFlickable` and keep
+  the page content in it too (fixed in 1.0.7).
 - **App does not start on the device**: run
   `devel-su journalctl -xe | grep -i molecules` or start
   `harbour-molecules` from the command line and read the error message.

@@ -1,3 +1,16 @@
+* Fri Oct 30 2026 Sailfish Port <port@example.org> - 1.0.7
+- Behoben: Touch-Behandlung und Pulley-Menue auf Geraeten mit Silica 1.2
+  (Sailfish OS 5.1 / Jolla Phone 2026). Die Inhalte inkl. Pulley-Menue
+  liegen jetzt in einem SilicaFlickable: Der entfernte C++-Page verband
+  frueher Pulley und Flickable automatisch, das neue Composite-Page
+  nicht - das Pulley fand kein Flickable (Fehlermeldungen wie
+  "Cannot read property 'contentX' of null" im Log) und die
+  Touch-Kette der Seite lief ins Leere: Tipps und Gesten reagierten
+  nicht, das Tutorial war nicht per 2-Finger-Tipp fortzusetzen.
+- Waehrend ein Finger den Schirm beruehrt, wird die
+  Flickable-Interaktion gesperrt, damit der Flickable der
+  Touch-Flaeche keine Touch-Punkte wegnehmen kann (Grab-Steal).
+
 * Fri Oct 30 2026 Sailfish Port <port@example.org> - 1.0.6
 - Behoben: Der Rechtsklick-Ersatz (2-Finger-Tipp) reagierte auf dem
   Geraet nicht - weder Tutorial fortsetzen noch Hauptmenue oeffnen.
