@@ -1,3 +1,13 @@
+* Fri Oct 30 2026 Sailfish Port <port@example.org> - 1.0.9
+- Tutorial- und Hauptmenue-Overlay liegen jetzt ausserhalb des
+  SilicaFlickable als direkte Kinder der Page: der Flickable kann der
+  Touch-Flaeche keine Touch-Punkte mehr wegnehmen (Grab-Steal beim
+  Ziehen), die Tipps kommen garantiert beim Overlay an.
+- Neu: Doppeltipp setzt das Tutorial fort - auf dem Touchscreen die
+  zuverlaessigste Naeherung eines Rechtsklicks (zwei kurze Tipps
+  hintereinander); der gleichzeitige Tipp mit zwei Fingern
+  funktioniert weiterhin.
+
 * Fri Oct 30 2026 Sailfish Port <port@example.org> - 1.0.8
 - Behoben: Startfehler "Cannot assign to non-existent property
   'spacing'" in 1.0.7. Der Composite-Typ PullDownMenu der neuen

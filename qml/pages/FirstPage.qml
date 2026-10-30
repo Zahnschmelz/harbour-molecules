@@ -80,7 +80,7 @@ Page {
                            "Halte hinter dich gedrückt, um dich " +
                            "fortzubewegen.\n\n" +
                            "Denk daran: Jeder Schub kostet Masse und macht dich kleiner.\n\n" +
-                           "[Mit zwei Fingern tippen zum Fortsetzen]")
+                           "[Doppeltipp oder Tipp mit zwei Fingern\nsetzt das Tutorial fort]")
         Game.updateColors(molecules)
         syncItems()
     }
@@ -326,33 +326,6 @@ Page {
                 }
             }
 
-            // Tutorial-Overlay: Tipp mit zwei Fingern = Rechtsklick-Ersatz,
-            // setzt das Tutorial fort (Original: "[Press RMB to continue]")
-            MultiPointTouchArea {
-                id: tutorialTouch
-                anchors.fill: parent
-                z: 10
-                enabled: page.tutorialActive
-                mouseEnabled: false
-                onPressed: {
-                    gameFlick.interactive = false
-                    if (tutorialTouch.touchPoints.length >= 2)
-                        page.dismissTutorial()
-                }
-                onUpdated: {
-                    if (tutorialTouch.touchPoints.length >= 2)
-                        page.dismissTutorial()
-                }
-                onReleased: {
-                    if (tutorialTouch.touchPoints.length === 0)
-                        gameFlick.interactive = true
-                }
-                onCanceled: gameFlick.interactive = true
-                onEnabledChanged: {
-                    if (!enabled) gameFlick.interactive = true
-                }
-            }
-
             // Nachrichten (Tutorial / Sieg / Niederlage) wie message_label
             Text {
                 anchors.centerIn: parent
@@ -369,68 +342,112 @@ Page {
             }
         }
 
-        // ------------------------------------------------------ Hauptmenü
-        // Pendant zum MainMenu des Originals (wurde dort per Rechtsklick
-        // geoeffnet). Auf dem Telefon zusaetzlich zum Pulley-Menue per
-        // "Rechtsklick" erreichbar: Tipp mit zwei Fingern im Spielfeld.
-        //
-        // Wichtig: Die neue Silica-Generation (1.2.x, Sailfish OS 5.1 /
-        // Jolla Phone 2026) kennt den attachbaren Typen "Menu" nicht mehr
-        // (wie schon SilicaPage entfernt) - daher ein eigenes, Silica-artig
-        // gestyltes Overlay aus MenuItems. Funktioniert in allen Silica-
-        // Generationen.
-        Item {
-            id: pageMenu
+    }
+
+    // ------------------------------------------------------ Page-Ebene Overlays
+    //
+    // Tutorial-Overlay und Hauptmenue-Overlay liegen bewusst
+    // AUSSERHALB des SilicaFlickable (direkte Kinder der Page): der
+    // Flickable kann der Touch-Flaeche damit keine Touch-Punkte
+    // wegnehmen (Grab-Steal beim Ziehen) - die Tipps kommen garantiert
+    // beim Overlay an.
+    //
+    // Tutorial fortsetzen (Rechtsklick-Ersatz, Original: "RMB"):
+    //  - Doppeltipp: zwei kurze Tipps hintereinander - auf dem
+    //    Touchscreen die zuverlaessigste Rechtsklick-Naeherung
+    //  - gleichzeitiger Tipp mit zwei Fingern: Pruefung ueber die
+    //    EIGENSCHAFT touchPoints (zaehlt alle aktiven Punkte); das
+    //    Signal-Argument von onPressed enthaelt nur die *neu*
+    //    gedueckten Punkte - Qt-Falle!
+    MultiPointTouchArea {
+        id: tutorialTouch
+        anchors.fill: parent
+        z: 5
+        enabled: page.tutorialActive
+        mouseEnabled: false
+
+        property real lastTapTime: 0
+
+        onPressed: {
+            if (tutorialTouch.touchPoints.length >= 2)
+                page.dismissTutorial()
+        }
+        onUpdated: {
+            if (tutorialTouch.touchPoints.length >= 2)
+                page.dismissTutorial()
+        }
+        onReleased: {
+            // Doppeltipp: erst wenn alle Finger oben waren, zaehlen
+            if (tutorialTouch.touchPoints.length > 0)
+                return
+            var now = Date.now()
+            if (now - tutorialTouch.lastTapTime < 400)
+                page.dismissTutorial()
+            tutorialTouch.lastTapTime = now
+        }
+    }
+
+    // ------------------------------------------------------ Hauptmenü
+    // Pendant zum MainMenu des Originals (wurde dort per Rechtsklick
+    // geoeffnet). Auf dem Telefon zusaetzlich zum Pulley-Menue per
+    // "Rechtsklick" erreichbar: Tipp mit zwei Fingern im Spielfeld.
+    //
+    // Wichtig: Die neue Silica-Generation (1.2.x, Sailfish OS 5.1 /
+    // Jolla Phone 2026) kennt den attachbaren Typen "Menu" nicht mehr
+    // (wie schon SilicaPage entfernt) - daher ein eigenes, Silica-artig
+    // gestyltes Overlay aus MenuItems. Funktioniert in allen Silica-
+    // Generationen.
+    Item {
+        id: pageMenu
+        anchors.fill: parent
+        z: 20
+        visible: open
+        property bool open: false
+
+        // Hintergrund: jeder Tipp schliesst das Menue
+        // (Original: Hauptmenue per Rechtsklick zu-/zuschalten)
+        MultiPointTouchArea {
             anchors.fill: parent
-            z: 20
-            visible: open
-            property bool open: false
+            onPressed: pageMenu.open = false
 
-            // Hintergrund: jeder Tipp schliesst das Menue
-            // (Original: Hauptmenue per Rechtsklick zu-/zuschalten)
-            MultiPointTouchArea {
-                anchors.fill: parent
-                onPressed: pageMenu.open = false
-
-                Rectangle {
-                    anchors.fill: parent
-                    color: Qt.rgba(0, 0, 0, 0.7)
-                }
-            }
-
-            // Menue-Panel (Pendant zu den MainMenu-Buttons des Originals)
             Rectangle {
-                anchors.centerIn: parent
-                width: 480
-                height: menuColumn.height + 2 * Theme.paddingMedium
-                radius: Theme.paddingSmall
-                color: Theme.highlightColor
+                anchors.fill: parent
+                color: Qt.rgba(0, 0, 0, 0.7)
+            }
+        }
 
-                Column {
-                    id: menuColumn
-                    width: parent.width
-                    y: Theme.paddingMedium
+        // Menue-Panel (Pendant zu den MainMenu-Buttons des Originals)
+        Rectangle {
+            anchors.centerIn: parent
+            width: 480
+            height: menuColumn.height + 2 * Theme.paddingMedium
+            radius: Theme.paddingSmall
+            color: Theme.highlightColor
 
-                    MenuItem {
-                        text: qsTr("Neues Level")
-                        onClicked: { pageMenu.open = false; page.newLevel() }
+            Column {
+                id: menuColumn
+                width: parent.width
+                y: Theme.paddingMedium
+
+                MenuItem {
+                    text: qsTr("Neues Level")
+                    onClicked: { pageMenu.open = false; page.newLevel() }
+                }
+                IconTextSwitch {
+                    text: qsTr("Musik")
+                    checked: page.musicEnabled
+                    onClicked: page.toggleMusic()
+                }
+                MenuItem {
+                    text: qsTr("Über Molecules")
+                    onClicked: {
+                        pageMenu.open = false
+                        pageStack.push(Qt.resolvedUrl("AboutPage.qml"))
                     }
-                    IconTextSwitch {
-                        text: qsTr("Musik")
-                        checked: page.musicEnabled
-                        onClicked: page.toggleMusic()
-                    }
-                    MenuItem {
-                        text: qsTr("Über Molecules")
-                        onClicked: {
-                            pageMenu.open = false
-                            pageStack.push(Qt.resolvedUrl("AboutPage.qml"))
-                        }
-                    }
-                    MenuItem {
-                        text: qsTr("Schließen")
-                        onClicked: pageMenu.open = false
-                    }
+                }
+                MenuItem {
+                    text: qsTr("Schließen")
+                    onClicked: pageMenu.open = false
                 }
             }
         }
